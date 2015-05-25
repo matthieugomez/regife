@@ -5,7 +5,7 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 The syntax is
 
 ```
-regife y xvarlist, ife(idvar timevar)  Dimension(integer)  
+regife y xvarlist, Factors(idvar timevar)  Dimension(integer)  
 [ Absorb(string) noCONS 
   convergence(real 0.000001) MAXiteration(int 500) 
   gen(string)
@@ -22,13 +22,13 @@ Specify supplementary fixed effect using the option `absorb` (which allows for s
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
 ```
-regife y xvarlist,  ife(fi=id ft=timevar) 
+regife y xvarlist,  f(fi=id ft=timevar) 
 ```
 
 Check that all the equations give the same coefficients:
 
 ```
-regife y xvarlist, ife(fi=id ft=timevar)  d(2)
+regife y xvarlist, f(fi=id ft=timevar)  d(2)
 reg y xvarlist i.timevar#c.fi1 i.timevar#c.fi2
 reg y xvarlist i.idvar#c.ft1 i.idvar#c.ft2
 ```
@@ -36,13 +36,17 @@ reg y xvarlist i.idvar#c.ft1 i.idvar#c.ft2
 Directly save the factors using the option `gen`
 
 ```
-regife y xvarlist, ife(idvar timevar) d(2) gen(res)
+regife y xvarlist, f(idvar timevar) d(2) gen(res)
 ```
 
 
 ### ife
 
 The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
+
+```
+ife x, f(idvar timevar) d(2) gen(res)
+```
 
 # Installation
 
