@@ -39,8 +39,17 @@ Directly save the factors using the option `gen`
 regife y xvarlist, ife(idvar timevar) d(2) gen(res)
 ```
 
+
+### ife
+
+The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
+
 # Installation
 
+`regife` requires the command `hdfe` if you use the option `absorb`
+
 ```
+cap ado uninstall reghdfe
+net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```

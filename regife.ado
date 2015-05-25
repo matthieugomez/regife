@@ -1,10 +1,16 @@
 cap program drop regife
 program define regife, eclass sortpreserve
-	version 13
-	syntax anything [if] [in] [aweight/], ife(varlist) Dimension(integer)  [Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) gen(string)]
+
+	version 12
+	syntax anything [if] [in], Factors(string) Dimension(integer)  [Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) GENerate(string)]
 
 
-	qui ExpandFactorVariables `anything'
+	tokenize `anything'
+	local yname `1'
+	macro shift 
+	local xname `*'
+
+	fvrevar `anything', tsonly 
 	local anything = r(varlist)
 	tokenize `anything'
 	local y `1'
@@ -12,13 +18,12 @@ program define regife, eclass sortpreserve
 	local x `*'
 
 
-
 	if "`gen'" ~= ""{
 		confirm new variable `gen'
 	}
 
-	local ife = trim("`ife'")
-	if regexm("`ife'", "(.+[^=]*) ([^=]*.+)"){
+	local factors = trim("`factors'")
+	if regexm("`factors'", "(.+[^=]*) ([^=]*.+)"){
 		local id = regexs(1)
 		local time = regexs(2)
 	}
@@ -131,8 +136,8 @@ program define regife, eclass sortpreserve
 
 
 	qui gen `res2' = `y' - `res'
-	if "`gen'" ~= ""{
-		rename `res' `gen'
+	if "`generate'" ~= ""{
+		rename `res' `generate'
 	}
 	qui reg `res2' `xc', nocons
 
@@ -145,13 +150,10 @@ program define regife, eclass sortpreserve
 	scalar `df_r' = `obs' - `df_m'
 
 	mat `b' = e(b)
-
-	FixVarnames `oldx'
-	local xnames =  r(newnames)
-	mat colnames `b' =`xnames'
+	mat colnames `b' =`xname'
 	mat `V' = e(V) * e(df_r)/ `df_r'
-	mat colnames `V' =`xnames'
-	mat rownames `V' =`xnames'
+	mat colnames `V' =`xname'
+	mat rownames `V' =`xname'
 
 	tempname r2w
 	scalar `r2w' = e(r2)
@@ -261,212 +263,5 @@ mata:
 			}
 		}
 	}
-end
-
-/***************************************************************************************************
-helpfer program to handle factor variables from reghdfe
-***************************************************************************************************/
-cap program drop Assert
-cap program drop ExpandFactorVariables
-cap program drop LabelRenameVariable
-cap program drop Debug
-cap program drop FixVarnames
-
-program define Assert
-	syntax anything(everything equalok) [, MSG(string asis) RC(integer 198)]
-	if !(`anything') {
-		di as error `msg'
-		exit `rc'
-	}
-end
-
-
-
-program define Debug
-
-	syntax, [MSG(string asis) Level(integer 1) NEWline COLOR(string)] [tic(integer 0) toc(integer 0)]
-	
-	cap mata: st_local("VERBOSE",strofreal(VERBOSE)) // Ugly hack to avoid using a global
-	if ("`VERBOSE'"=="") {
-		di as result "Mata scalar -VERBOSE- not found, setting VERBOSE=3"
-		local VERBOSE 3
-		mata: VERBOSE = `VERBOSE'
-	}
-
-
-	assert "`VERBOSE'"!=""
-	assert inrange(`level',0, 4)
-	assert (`tic'>0) + (`toc'>0)<=1
-
-	if ("`color'"=="") local color text
-	assert inlist("`color'", "text", "res", "result", "error", "input")
-
-	if (`VERBOSE'>=`level') {
-
-		if (`tic'>0) {
-			timer clear `tic'
-			timer on `tic'
-		}
-		if (`toc'>0) {
-			timer off `toc'
-			qui timer list `toc'
-			local time = r(t`toc')
-			if (`time'<10) local time = string(`time'*1000, "%tcss.ss!s")
-			else if (`time'<60) local time = string(`time'*1000, "%tcss!s")
-			else if (`time'<3600) local time = string(`time'*1000, "%tc+mm!m! SS!s")
-			else if (`time'<24*3600) local time = string(`time'*1000, "%tc+hH!h! mm!m! SS!s")
-			timer clear `toc'
-			local time `" as result " `time'""'
-		}
-
-		if (`"`msg'"'!="") di as `color' `msg'`time'
-		if ("`newline'"!="") di
-	}
-end
-
-
-program define ExpandFactorVariables, rclass
-	syntax varlist(min=1 numeric fv ts) [if] [,setname(string)] [CACHE]
-	
-	* If saving the data for later regressions -savecache(..)- we will need to match each expansion to its newvars
-	* This mata array is used for that
-	* Note: This explains why we need to wrap -fvrevar- in a loop
-	if ("`cache'"!="") mata: varlist_cache = asarray_create()
-
-	* Building the debug message may be slow, only do it if requested with verbose
-	cap mata: st_local("VERBOSE",strofreal(VERBOSE))
-	if ("`VERBOSE'"=="") local VERBOSE 3
-
-	local expanded_msg `"" - variable expansion for `setname': " as result "`varlist'" as text " ->""'
-	while (1) {
-		gettoken factorvar varlist : varlist, bind
-		if ("`factorvar'"=="") continue, break
-
-		fvrevar `factorvar' `if' // , stub(__V__) // stub doesn't work in Stata 11.2
-		local contents
-		foreach var of varlist `r(varlist)' {
-			LabelRenameVariable `var' // Tempvars not renamed will be dropped automatically
-			if !r(is_dropped) local contents `contents' `r(varname)'
-			* Yellow=Already existed, White=Created, Red=NotCreated (omitted or base)
-			local color = cond(r(is_dropped), "error", cond(r(is_newvar), "input", "result"))
-			if (`VERBOSE'>3) {
-				local expanded_msg `"`expanded_msg' as `color' " `r(name)'" as text " (`r(varname)')""'
-			}
-		}
-		Assert "`contents'"!="", msg("error: variable -`fvvar'- in varlist -`varlist'- in category -`setname'- is  empty after factor/time expansion")
-		if ("`cache'"!="") mata: asarray(varlist_cache, "`fvvar'", "`contents'")
-		local newvarlist `newvarlist' `contents'
-	}
-
-	Debug, level(3) msg(`expanded_msg')
-	return clear
-	return local varlist "`newvarlist'"
-end
-
-program define LabelRenameVariable, rclass
-	syntax varname
-	local var `varlist'
-	local fvchar : char `var'[fvrevar]
-	local tschar : char `var'[tsrevar]
-	local is_newvar = ("`fvchar'`tschar'"!="") & substr("`var'", 1, 2)=="__"
-	local name "`var'"
-	local will_drop 0
-
-	if (`is_newvar') {
-		local name "`fvchar'`tschar'"
-		local parts : subinstr local fvchar "#" " ", all
-		local has_cont_interaction = strpos("`fvchar'", "c.")>0
-		local is_omitted 0
-		local is_base 0
-		foreach part of local parts {
-			if (regexm("`part'", "b.*\.")) local is_base 1
-			if (regexm("`part'", "o.*\.")) local is_omitted 1
-		}
-
-		local will_drop = (`is_omitted') | (`is_base' & !`has_cont_interaction')
-		if (!`will_drop') {
-			char `var'[name] `name'
-			la var `var' "[Tempvar] `name'"
-			local newvar : subinstr local name "." "__", all
-			local newvar : subinstr local newvar "#" "_X_", all
-			* -permname- selects newname# if newname is taken (# is the first number available)
-			local newvar : permname __`newvar', length(30)
-			rename `var' `newvar'
-			local var `newvar'
-		}
-	}
-
-	return scalar is_newvar = `is_newvar'
-	return scalar is_dropped = `will_drop'
-	return local varname "`var'"
-	return local name "`name'"
-end
-
-
-program define FixVarnames, rclass
-	local vars `0'
-
-	foreach var of local vars {
-		local newname
-		local pretyname
-
-		* -var- can be <o.__W1__>
-		if ("`var'"=="_cons") {
-			local newname `var'
-			local prettyname `var'
-		}
-		else {
-			fvrevar `var', list
-			local basevar "`r(varlist)'"
-			local label : var label `basevar'
-			local is_avge = regexm("`basevar'", "^__W[0-9]+__$")
-			local is_temp = substr("`basevar'",1,2)=="__"
-			local is_omitted = strpos("`var'", "o.")
-			local prefix = cond(`is_omitted'>0, "o.", "")
-			local name : char `basevar'[name]
-
-			if (`is_avge') {
-				local avge_str : char `basevar'[avge_equation]
-				local name : char `basevar'[name]
-				local prettyname `avge_str':`prefix'`name'
-
-				local newname : char `basevar'[target]
-				if ("`newname'"=="") local newname `var'
-			}
-			else if (`is_temp' & "`name'"!="") {
-				local newname `prefix'`name'
-				
-				* Fix bug when the var is omitted:
-				local bugmatch = regexm("`newname'", "^o\.([0-9]+)b?\.(.+)$")
-				if (`bugmatch') {
-					local newname = regexs(1) + "o." + regexs(2) // EG: 1o.var
-				}
-
-				local prettyname `newname'
-			}
-			else {
-				local newname `var'
-				local prettyname `newname'
-			}
-		}
-		
-		*di in red " var=<`var'> --> new=<`newname'> pretty=<`prettyname'>"
-		Assert ("`newname'"!="" & "`prettyname'"!=""), ///
-		msg("var=<`var'> --> new=<`newname'> pretty=<`prettyname'>")
-		local newnames `newnames' `newname'
-		local prettynames `prettynames' `prettyname'
-	}
-
-	local A : word count `vars'
-	local B : word count `newnames'
-	local C : word count `prettynames'
-	Assert `A'==`B', msg("`A' vars but `B' newnames")
-	Assert `A'==`C', msg("`A' vars but `C' newnames")
-	
-	***di as error "newnames=`newnames'"
-	***di as error "prettynames=`prettynames'"
-
-	return local newnames "`newnames'"
-	return local prettynames "`prettynames'"
 end
 

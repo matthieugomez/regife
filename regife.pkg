@@ -5,10 +5,12 @@ d
 d Author: Matthieu Gomez
 d
 d
-d KW: reghdfe, xtmg, xtcd
+d KW: xtmg, xtcd, reghdfe
 d
-d Requires: Stata version 11.2
+d Requires: Stata version 12
 d
 d Distribution-Date: 20150330
 d
 f regife.ado
+f ife.ado
+
