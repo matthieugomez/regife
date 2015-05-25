@@ -2,6 +2,8 @@
 
 A Stata command to compute Interactive fixed effect (Bai 2009)
 
+
+## Syntax
 Syntax is
 
 ```
@@ -10,11 +12,11 @@ regife yvar xvar, Id(idvar) Time(timevar) Dimension(integer)  ///
 ```
 
 
-# Absorb
+### Absorb
 You can specified supplementary fixed effect using the option `command`. Mathematically, `regife` is estimated on the residuals after removing the fixed effect. This mean fixed effect specified in `absorbs` must be compatible with an interactive fixed effect model with respect to `id` and `time`
 
 
-# Save
+### Save
 Save the factors for residuals using the option `gen`
 
 ```
