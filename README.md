@@ -13,8 +13,7 @@ regife y xvarlist, Factors(idvar timevar)  Dimension(integer)  [
 ```
 
 
-### Absorb
-Specify supplementary fixed effect using the option `absorb` (which allows for same syntax than `reghdfe`). Fixed effect specified in `absorbs` must be compatible with an interactive fixed effect model with respect to `id` and `time` (`regife` is estimated on the residuals after removing the fixed effect specified in `absorb`)
+
 
 
 ### Save
@@ -39,9 +38,10 @@ Directly save the factors using the option `gen`
 regife y xvarlist, f(idvar timevar) d(2) gen(res)
 ```
 
+### Absorb
+The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
 ### ife
-
 The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
 
 ```
