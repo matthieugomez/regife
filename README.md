@@ -22,7 +22,7 @@ Save the factors for residuals using the option `gen`
 ```
 regife y xvarlist, i(fi=idvar) time(ft=timevar) gen(res)
 ```
-Save the interactive fixed effect using the option `absorb`
+Save the interactive fixed effect using the symbol `=` in the option `id` and `time`
 
 ```
 regife y xvarlist, i(fi=idvar) time(ft=timevar)
