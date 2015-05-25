@@ -1,5 +1,5 @@
 
-A Stata command to compute Interactive fixed effect (Bai 2009)
+The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 # Syntax
 The syntax is
