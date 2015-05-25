@@ -14,10 +14,12 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 ]
 ```
 
+### absorb
+
+The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
 
-
-### Save
+### save
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
@@ -33,7 +35,6 @@ reg y [indepvars] i.timevar#c.fi1 i.timevar#c.fi2
 reg y [indepvars] i.idvar#c.ft1 i.idvar#c.ft2
 ```
 
-### Predict
 Obtain the factor using `predict`:
 
 ```
@@ -47,10 +48,8 @@ predict factors, f
 - `xbf` returns prediction augmented with the factor term
 
 To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
-### Absorb
-The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
-# Example
+# example
 
 ```
 use "data/Divorce-Wolfers-AER", clear
@@ -79,7 +78,7 @@ The command `ife` estimates a factor model for a given variable. Contrary to Sta
 ife x, f(idvar timevar) d(2) gen(res)
 ```
 
-# Installation
+# installation
 
 `regife` requires the command `hdfe` if you use the option `absorb`
 
