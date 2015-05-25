@@ -1,9 +1,14 @@
 cap program drop regife
 program define regife, eclass sortpreserve
 	version 13
-	syntax anything [if] [in] [aweight/], Id(string) Time(string) Dimension(integer)  [Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 500) gen(string)]
+	syntax anything [if] [in] [aweight/], Id(string) Time(string) Dimension(integer)  [Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) gen(string)]
 
-	/* syntax  */
+	tokenize `anything'
+	local yname `1'
+	macro shift 
+	local xname `*'
+
+
 	fvrevar `anything'
 	local anything = r(varlist)
 	tokenize `anything'
@@ -30,7 +35,7 @@ program define regife, eclass sortpreserve
 	confirm var `time'
 
 	marksample touse
-	markout `touse' `id' `time' `absorb'
+	markout `touse' `id' `time' `y' `x'
 
 
 
@@ -58,14 +63,11 @@ program define regife, eclass sortpreserve
 		local nocons cons
 	}
 	else{
+		local oldx `x'
+		local oldy `y'
 		scalar `df_a' = 0
 	}
 
-	/* count after potential redefinition by absorb */
-	qui count if `touse'
-	local touse_first = _N - r(N) + 1
-	local touse_last = _N
-	local obs = `touse_last'-`touse_first'
 
 
 	/* tempname */
@@ -94,26 +96,36 @@ program define regife, eclass sortpreserve
 		gen `cons' = 1
 		local xc `x' `cons'
 		local oldx `oldx' _cons
+		local xname `xname' _cons
 	}
 	else{
 		local xc `x'
 	}
 
 	/* reg  */
-	qui _regress `y' `xc', nocons
+	qui _regress `y' `xc' if `touse', nocons
 	matrix `b' = e(b)
-	qui predict `res', res
+	qui predict `res' if `touse', res
+
+	/* count after potential redefinition by absorb */
+	sort `touse'
+	qui count if `touse' 
+	local touse_first = _N - r(N) + 1
+	local touse_last = _N
+	local obs = `touse_last'-`touse_first' + 1
+
 
 	mata: iteration("`y'","`res'", "`xc'", "`id'", "`time'", `N', `T', `dimension', `convergence', `maxiteration', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
 
+
 	gen `res2' = `y' - `res'
 	if "`gen'" ~= ""{
 		rename `res' `gen'
 	}
-	qui reg `res2' `xc'
+	qui reg `res2' `xc', nocons
 
 	mat `b' = e(b)
 	tempname df_m
@@ -122,10 +134,9 @@ program define regife, eclass sortpreserve
 	scalar `df_r' = `obs' - `df_m'
 	mat `V' = e(V) * e(df_r)/ `df_r'
 
-	mat colnames `b' =`oldx'
-	mat colnames `V' =`oldx'
-	mat rownames `V' =`oldx'
-
+	mat colnames `b' =`xname'
+	mat colnames `V' =`xname'
+	mat rownames `V' =`xname'
 
 	tempname r2w
 	scalar `r2w' = e(r2)
@@ -181,6 +192,7 @@ mata:
 		M = invsym(cross(X, X)) * X'
 		b1 = st_matrix(bname)'
 		iter = 0
+
 		while ((iter < maxiteration) & (error >= convergence)){
 			iter = iter + 1
 			tY = Y :-  X * b1
