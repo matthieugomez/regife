@@ -14,6 +14,16 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 ]
 ```
 
+
+#
+
+webuse set https://github.com/matthieugomez/stata-regife/raw/master/data/
+webuse  Divorce-Wolfers-AER, clear
+gen treatment =  year >= lfdivlaw 
+
+reg div_rate unilateral divx* i.st i.year
+reg div_rate unilateral
+
 ### Save
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`

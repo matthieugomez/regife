@@ -2,7 +2,17 @@ cap program drop regife
 program define regife, eclass sortpreserve
 
 	version 12
-	syntax anything [if] [in], Factors(string) Dimension(integer)  [Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) GENerate(string)]
+	syntax anything [if] [in] [aweight fweight pweight], Factors(string) Dimension(integer)  [cluster(varname) Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) GENerate(string)]
+
+
+	if "`cl'" ~= ""{
+		local cl cl(`cl')
+	}
+
+	if ("`weight'"!=""){
+		local wt [`weight'`exp']
+		display "Weight are only used for regressions, not for the PCA"
+	}
 
 
 	tokenize `anything'
@@ -16,6 +26,7 @@ program define regife, eclass sortpreserve
 	local y `1'
 	macro shift 
 	local x `*'
+
 
 
 	if "`gen'" ~= ""{
@@ -43,7 +54,7 @@ program define regife, eclass sortpreserve
 	confirm var `time'
 
 	marksample touse
-	markout `touse' `id' `time' `y' `x'
+	markout `touse' `id' `time' `y' `x', strok
 
 
 
@@ -55,7 +66,7 @@ program define regife, eclass sortpreserve
 		local y ""
 		tempvar sample
 		tempname prefix
-		hdfe `oldy' `oldx' if `touse', a(`absorb') gen(`prefix') sample(`sample')
+		hdfe `oldy' `oldx'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
 		scalar `df_a' = r(df_a)
 		qui replace `touse' = 0 if `sample' == 0
 		tempvar `prefix'`oldy'
@@ -81,7 +92,6 @@ program define regife, eclass sortpreserve
 	/* tempname */
 	tempvar res res2 y2 g1 g2
 	tempname b V
-
 
 
 
@@ -117,7 +127,7 @@ program define regife, eclass sortpreserve
 	}
 
 	/* reg  */
-	qui _regress `y' `xc' if `touse', nocons
+	qui _regress `y' `xc' `wt' if `touse', nocons
 	matrix `b' = e(b)
 	qui predict `res' if `touse', res
 
@@ -139,7 +149,7 @@ program define regife, eclass sortpreserve
 	if "`generate'" ~= ""{
 		rename `res' `generate'
 	}
-	qui reg `res2' `xc', nocons
+	qui reg `res2' `xc' `wt', nocons `cl'
 
 
 
