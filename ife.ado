@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varlist [if] [in], Factors(string) Dimension(integer) GENerate(string) [convergence(real 0.000001) MAXiteration(int 10000)]
+	syntax varname [if] [in], Factors(string) Dimension(integer) GENerate(newvarname) [TOLerance(real 1e-61) MAXIterations(int 10000)]
 
 	local y `varlist'
 	if "`generate'" ~= ""{
@@ -28,7 +28,7 @@ program define ife, eclass sortpreserve
 	confirm var `time'
 
 	marksample touse
-	markout `touse' `id' `time' `y' 
+	markout `touse' `id' `time' `y', strok
 
 
 
@@ -68,7 +68,7 @@ program define ife, eclass sortpreserve
 	tempvar res
 	gen `res' = `y'
 
-	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `convergence', `maxiteration', `touse_first', `touse_last', "`idgen'", "`timegen'")
+	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiteration', `touse_first', `touse_last', "`idgen'", "`timegen'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -122,7 +122,7 @@ mata:
 		Y = editmissing(Y, 0)
 		error = 1
 		iter = 0
-		while ((iter < maxiteration) & (error >= convergence)){
+		while (((maxiteration == 0) | (iter < maxiteration)) & (error >= convergence)){
 			iter = iter + 1
 			R2 = Y :+ na :* R1
 			_svd(R2, s, V)

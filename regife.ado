@@ -2,37 +2,32 @@ cap program drop regife
 program define regife, eclass sortpreserve
 
 	version 12
-	syntax anything [if] [in] [aweight fweight pweight], Factors(string) Dimension(integer)  [cluster(varname) Absorb(varlist) noCONS convergence(real 0.000001) MAXiteration(int 10000) GENerate(string)]
+	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [cluster(varname) Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) GENerate(string)]
 
 
+	/* tempname */
+	tempvar res res2 y2 g1 g2
+	tempname b V
+
+	/* syntax */
 	if "`cl'" ~= ""{
 		local cl cl(`cl')
 	}
 
 	if ("`weight'"!=""){
 		local wt [`weight'`exp']
-		display "Weight are only used for regressions, not for the PCA"
+		local sumwt [aw`exp']
+		display as text "Weight are used only for regressions, not for the PCA"
 	}
 
 
-	tokenize `anything'
-	local yname `1'
-	macro shift 
-	local xname `*'
-
-	fvrevar `anything', tsonly 
-	local anything = r(varlist)
-	tokenize `anything'
-	local y `1'
-	macro shift 
-	local x `*'
 
 
-
-	if "`gen'" ~= ""{
-		confirm new variable `gen'
+	if "`generate'" ~= ""{
+		confirm new variable `generate'
 	}
 
+	/* syntax factors */
 	local factors = trim("`factors'")
 	if regexm("`factors'", "(.+[^=]*) ([^=]*.+)"){
 		local id = regexs(1)
@@ -53,13 +48,50 @@ program define regife, eclass sortpreserve
 	}
 	confirm var `time'
 
+
+	/* touse */
 	marksample touse
-	markout `touse' `id' `time' `y' `x', strok
+	markout `touse' `id' `time', strok
+	
+
+	/*syntax varlist  */
+	fvrevar `varlist' if `touse'
+	local varlist = r(varlist)
+	foreach v in `varlist'{
+		local tvar : char `v'[tsrevar]
+		local fvar : char `v'[fvrevar]
+		if "`tvar'`fvar'" ~=""{
+			local namelist `namelist'  `tvar'`fvar'
+		}
+		else{
+			local namelist `namelist' `v'
+		}
+	}
+	tokenize `varlist'
+	local y `1'
+	macro shift 
+	local x `*'
+	tokenize `namelist'
+	local yname `1'
+	macro shift 
+	local xname `*'
 
 
 
+
+
+	/* absorb */
 	tempname df_a
 	if "`absorb'" ~= ""{
+
+		cap which hdfe.ado
+		if _rc {
+			di as error "hdfe.ado required when using multiple absorb variables:"
+			di as error "{stata cap ado uninstall hdfe}"
+			di as error "{stata net install hdfe, from(https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package)}"
+		}
+
+
 		local oldx `x'
 		local oldy `y'
 		local x ""
@@ -86,14 +118,15 @@ program define regife, eclass sortpreserve
 		local oldy `y'
 		scalar `df_a' = 0
 	}
+	/* count number of observations. since I don't look at syntax of absorb, I need to count after hdfe redefines touse */
+	sort `touse'
+	qui count if `touse' 
+	local touse_first = _N - r(N) + 1
+	local touse_last = _N
+	local obs = `touse_last'-`touse_first' + 1
 
 
-
-	/* tempname */
-	tempvar res res2 y2 g1 g2
-	tempname b V
-
-
+	/* create group for i an t */
 
 	/* create group for i and t */
 	sort `touse' `id'
@@ -115,6 +148,7 @@ program define regife, eclass sortpreserve
 		exit 0
 	}
 
+	/* nocons */
 	if "`nocons'" == ""{
 		tempvar cons
 		qui gen `cons' = 1
@@ -126,25 +160,19 @@ program define regife, eclass sortpreserve
 		local xc `x'
 	}
 
-	/* reg  */
+	/* algorithim */
+	* first reg  
 	qui _regress `y' `xc' `wt' if `touse', nocons
 	matrix `b' = e(b)
 	qui predict `res' if `touse', res
 
-	/* count after potential redefinition by absorb */
-	sort `touse'
-	qui count if `touse' 
-	local touse_first = _N - r(N) + 1
-	local touse_last = _N
-	local obs = `touse_last'-`touse_first' + 1
-
-
-	mata: iteration("`y'","`res'", "`xc'", "`id'", "`time'", `N', `T', `dimension', `convergence', `maxiteration', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
+	* iterate 
+	mata: iteration("`y'","`res'", "`xc'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
 
-
+	* last reg
 	qui gen `res2' = `y' - `res'
 	if "`generate'" ~= ""{
 		rename `res' `generate'
@@ -152,8 +180,7 @@ program define regife, eclass sortpreserve
 	qui reg `res2' `xc' `wt', nocons `cl'
 
 
-
-	/* results */
+	/* return results */
 	tempname df_m
 	scalar `df_m' = e(df_m) + (`N'+`T')* `dimension' + `df_a'
 	tempname df_r
@@ -165,15 +192,20 @@ program define regife, eclass sortpreserve
 	mat colnames `V' =`xname'
 	mat rownames `V' =`xname'
 
-	tempname r2w
+
+	tempname r2w 
 	scalar `r2w' = e(r2)
-	qui sum `y'
+	qui sum `y' `sumwt'
 	local rtotal = r(sd)^2
-	qui sum `res2'
+	qui sum `res2' `sumwt'
 	local rpartial = r(sd)^2
 	tempname r2
 	scalar `r2' = (`r2w' * `rpartial' + `rtotal'- `rpartial') / `rtotal'
 
+	if `iter' == `maxiterations'{
+		display as text "The algorithm did not converge : error is" in ye %4.3gc `error' in text " (higher than tolerance" in ye %4.3gc `tolerance' in text")"
+		display as text "Use the maxiterations options to increase the amount of iterations"
+	}
 
 	ereturn post `b' `V', depname(`yname') obs(`obs') esample(`touse') 
 	ereturn scalar df_r = `df_r'
@@ -188,18 +220,17 @@ program define regife, eclass sortpreserve
 	display as text "{lalign 26:Within R-sq  = }" in ye %10.3fc `r2w'
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
 
-	if `iter' == `maxiteration'{
-		display as error "{lalign 26:Convergence error = }" in ye %10.3gc `error'
-	}
+
 
 end
 
 /***************************************************************************************************
-mata helper
+helper functions
 ***************************************************************************************************/
+
 set matastrict on
 mata:
-	void iteration(string scalar y, string scalar res, string scalar x, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar convergence, maxiteration, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
+	void iteration(string scalar y, string scalar res, string scalar x, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
 		real matrix Y 
 		real matrix X
 		real matrix tY
@@ -234,7 +265,7 @@ mata:
 		V = J(T, T, .)
 		iter = 0
 		error = 1
-		while ((iter < maxiteration) & (error >= convergence)){
+		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			iter = iter + 1
 			tY = Y :-  X * b1
 			for (obs = first; obs <= last ; obs++) {    
@@ -274,4 +305,6 @@ mata:
 		}
 	}
 end
+
+
 

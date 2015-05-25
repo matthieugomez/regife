@@ -9,7 +9,7 @@ The syntax is
 ```
 regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
-	convergence(real 0.000001) MAXiteration(int 500) 
+	TOLerance(real 1e-6) MAXIterations(int 10000) 
 	GENerate(newvarname)
 ]
 ```
@@ -19,10 +19,10 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 
 webuse set https://github.com/matthieugomez/stata-regife/raw/master/data/
 webuse  Divorce-Wolfers-AER, clear
-gen treatment =  year >= lfdivlaw 
+egen state = group(st), label
 
-reg div_rate unilateral divx* i.st i.year
-reg div_rate unilateral
+reghdfe div_rate unilateral divx* if inrange(year, 1968, 1988)  [aw=stpop], a(state year)
+regife div_rate unilateral divx* if inrange(year, 1968, 1988)  [w=stpop], f(state year) d(2)
 
 ### Save
 
@@ -48,7 +48,6 @@ regife depvar [indepvars], f(idvar timevar) d(2) gen(res)
 
 ### Absorb
 The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
-
 
 
 # ife
