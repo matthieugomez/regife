@@ -1,0 +1,9 @@
+v 3
+d Matthieu Gomez, Princeton University (mattg@princeton.edu)
+p regife REGIFE - interactive fixed effect
+
+* l word-to-show path-or-url [description]
+* t: Directories within site:
+* t path [description]
+* Packages:
+* p pkgname [description]

@@ -1,7 +1,7 @@
 
 A Stata command to compute Interactive fixed effect (Bai 2009)
 
-
+# Syntax
 The syntax is
 
 ```
@@ -38,3 +38,9 @@ reg y xvarlist i.timevar#c.fi1 i.timevar#c.fi2
 reg y xvarlist i.idvar#c.ft1 i.idvar#c.ft2
 ```
 
+
+# Installation
+
+```
+net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
+```

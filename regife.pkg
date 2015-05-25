@@ -1,0 +1,14 @@
+v 3
+
+d regife. Append datasets with conflicting types
+d
+d Author: Matthieu Gomez
+d
+d
+d KW: reghdfe, xtmg, xtcd
+d
+d Requires: Stata version 11.2
+d
+d Distribution-Date: 20150330
+d
+f regife.ado
