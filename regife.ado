@@ -1,8 +1,7 @@
-cap program drop regife
 program define regife, eclass sortpreserve
 
 	version 12
-	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) GENerate(string) *]
+	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) *]
 
 
 	/* tempname */
@@ -20,9 +19,6 @@ program define regife, eclass sortpreserve
 
 
 
-	if "`generate'" ~= ""{
-		confirm new variable `generate'
-	}
 
 	/* syntax factors */
 	local factors = trim("`factors'")
@@ -33,23 +29,29 @@ program define regife, eclass sortpreserve
 
 	if regexm("`id'", "(.*)=(.*)"){
 		local idgen `= regexs(1)'
-		cap confirm new variable `idgen'
+		forval i = 1/`dimension'{
+			confirm new variable `idgen'_`i'
+		}
 		local id = regexs(2)
 	}
 	confirm var `id'
 
 	if regexm("`time'", "([^ ]*)=([^ ]*)"){
 		local timegen `= regexs(1)'
-		cap confirm new variable `timegen'
+		forval i = 1/`dimension'{
+			confirm new variable `timegen'_`i'
+		}
 		local time = regexs(2)
 	}
 	confirm var `time'
 
 
+
+
 	/* touse */
 	marksample touse
 	markout `touse' `id' `time', strok
-	
+
 
 	/*syntax varlist  */
 	fvrevar `varlist' if `touse'
@@ -139,9 +141,9 @@ program define regife, eclass sortpreserve
 
 	/* nocons */
 	if "`cons'" == ""{
-		tempvar cons
-		qui gen `cons' = 1
-		local pcx `px' `cons'
+		tempvar vcons
+		qui gen `vcons' = 1
+		local pcx `px' `vcons'
 		local xname `xname' _cons
 	}
 	else{
@@ -152,7 +154,8 @@ program define regife, eclass sortpreserve
 	* first reg  
 	qui _regress `py' `pcx' `wt' if `touse', nocons
 	matrix `b' = e(b)
-	qui predict `res' if `touse', res
+	qui predict `res' if `touse'
+
 
 	* iterate 
 	mata: iteration("`py'","`res'", "`pcx'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
@@ -160,13 +163,10 @@ program define regife, eclass sortpreserve
 	tempname error
 	scalar `error' = r(error)
 
+
 	* last reg
 	qui gen `res2' = `py' - `res'
-	if "`generate'" ~= ""{
-		rename `res' `generate'
-	}
-	qui reg `res2' `pcx' `wt' if `touse', nocons `options'
-
+	qui reg `res2' `px' `wt' if `touse', `cons' `options'
 
 	/* return results */
 	tempname df_m
@@ -201,6 +201,16 @@ program define regife, eclass sortpreserve
 	ereturn scalar r2_within = `r2w'
 	ereturn scalar r2 = `r2'
 	ereturn scalar error = `error'
+
+
+
+	ereturn local absorb `absorb'
+	ereturn local id1 `idg'
+	ereturn local id2 `time'
+	ereturn local f1 `idgen'
+	ereturn local f2 `timegen'
+	ereturn local d `dimension'
+	ereturn local predict "regife_p"
 
 	ereturn display
 	display as text "{lalign 26:Number of obs = }" in ye %10.0fc `obs'
@@ -275,16 +285,16 @@ mata:
 
 		if (strlen(idgen) > 0){
 			for (col = 1; col <= d; col++){
-				name =  idgen + strofreal(col)
+				name =  idgen +  "_" + strofreal(col)
 				st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, idgen +   strofreal(col), U[_st_data(obs, iindex), col])
+					st_store(obs, 	name, U[_st_data(obs, iindex), col])
 				} 
 			}
 		}
 		if (strlen(timegen) > 0){
 			for (col = 1; col <= d; col++){
-				name =  timegen + strofreal(col)
+				name =  timegen + "_" + strofreal(col)
 				st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
 					st_store(obs, name, V[col, _st_data(obs, tindex)])

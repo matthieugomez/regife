@@ -15,14 +15,14 @@ program define ife, eclass sortpreserve
 
 	if regexm("`id'", "(.*)=(.*)"){
 		local idgen `= regexs(1)'
-		cap confirm new variable `idgen'
+		confirm new variable `idgen'
 		local id = regexs(2)
 	}
 	confirm var `id'
 
 	if regexm("`time'", "([^ ]*)=([^ ]*)"){
 		local timegen `= regexs(1)'
-		cap confirm new variable `timegen'
+		confirm new variable `timegen'
 		local time = regexs(2)
 	}
 	confirm var `time'
@@ -72,7 +72,6 @@ program define ife, eclass sortpreserve
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
-
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
 	if `iter' == `maxiteration'{
 		display as error "{lalign 26:Convergence error = }" in ye %10.3gc `error'

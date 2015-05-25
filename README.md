@@ -15,21 +15,14 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 ```
 
 
-#
 
-webuse set https://github.com/matthieugomez/stata-regife/raw/master/data/
-webuse  Divorce-Wolfers-AER, clear
-egen state = group(st), label
-
-reghdfe div_rate unilateral divx* if inrange(year, 1968, 1988)  [aw=stpop], a(state year)
-regife div_rate unilateral divx* if inrange(year, 1968, 1988)  [w=stpop], f(state year) d(2)
 
 ### Save
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
 ```
-regife depvar [indepvars],  f(fi=id ft=timevar) 
+regife depvar [indepvars],  f(f1=firm f2=year) 
 ```
 
 Check that all the equations give the same coefficients:
@@ -40,14 +33,34 @@ reg y [indepvars] i.timevar#c.fi1 i.timevar#c.fi2
 reg y [indepvars] i.idvar#c.ft1 i.idvar#c.ft2
 ```
 
-Directly save the factors using the option `gen`
+### Predict
+Obtain the factor using `predict`:
 
 ```
-regife depvar [indepvars], f(idvar timevar) d(2) gen(res)
+regife depvar [indepvars],  f(f1=firm f2=year) 
+predict factors, f
 ```
+- `f` returns the factor term
+- `res` returns residuals without the factor term
+- `xb` returns prediction without the factor term
+- `resf` returns residuals augmented with the factor term
+- `xbf` returns prediction augmented with the factor term
 
+To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
 ### Absorb
 The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
+
+# Example
+
+```
+use "data/Divorce-Wolfers-AER", clear
+egen state = group(st), label
+keep if inrange(year, 1968, 1988) 
+reghdfe div_rate unilateral divx*  [aw=stpop], a(state year)
+
+regife div_rate unilateral divx* [w=stpop],  f(state year) d(4) 
+regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) 
+```
 
 
 # ife
