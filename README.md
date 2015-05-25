@@ -5,10 +5,11 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 The syntax is
 
 ```
-regife y xvarlist, Id(idvar) Time(timevar) Dimension(integer)  ///
-[Absorb(string) noCONS ///
- convergence(real 0.000001) MAXiteration(int 500) 
- gen(string)]
+regife y xvarlist, Id(idvar) Time(timevar) Dimension(integer)  
+[ Absorb(string) noCONS 
+  convergence(real 0.000001) MAXiteration(int 500) 
+  gen(string)
+]
 ```
 
 
