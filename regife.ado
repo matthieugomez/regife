@@ -2,7 +2,7 @@ cap program drop regife
 program define regife, eclass sortpreserve
 
 	version 12
-	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [cluster(varname) Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) GENerate(string)]
+	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) GENerate(string) *]
 
 
 	/* tempname */
@@ -10,9 +10,6 @@ program define regife, eclass sortpreserve
 	tempname b V
 
 	/* syntax */
-	if "`cl'" ~= ""{
-		local cl cl(`cl')
-	}
 
 	if ("`weight'"!=""){
 		local wt [`weight'`exp']
@@ -90,32 +87,26 @@ program define regife, eclass sortpreserve
 			di as error "{stata cap ado uninstall hdfe}"
 			di as error "{stata net install hdfe, from(https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package)}"
 		}
-
-
-		local oldx `x'
-		local oldy `y'
-		local x ""
-		local y ""
 		tempvar sample
 		tempname prefix
-		hdfe `oldy' `oldx'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
+		hdfe `y' `x'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
 		scalar `df_a' = r(df_a)
 		qui replace `touse' = 0 if `sample' == 0
-		tempvar `prefix'`oldy'
-		qui gen  ``prefix'`oldy'' = `prefix'`oldy' 
-		drop `prefix'`oldy'
-		local y ``prefix'`oldy''
-		foreach v in `oldx'{
+		tempvar `prefix'`y'
+		qui gen  ``prefix'`y'' = `prefix'`y' 
+		drop `prefix'`y'
+		local py ``prefix'`y''
+		foreach v in `x'{
 			tempvar `prefix'`v'
 			qui gen  ``prefix'`v'' = `prefix'`v'
 			drop `prefix'`v'
-			local x `x' ``prefix'`v''
+			local px `px' ``prefix'`v''
 		}
-		local nocons cons
+		local cons nocons
 	}
 	else{
-		local oldx `x'
-		local oldy `y'
+		local px `x'
+		local py `y'
 		scalar `df_a' = 0
 	}
 	/* count number of observations. since I don't look at syntax of absorb, I need to count after hdfe redefines touse */
@@ -125,8 +116,6 @@ program define regife, eclass sortpreserve
 	local touse_last = _N
 	local obs = `touse_last'-`touse_first' + 1
 
-
-	/* create group for i an t */
 
 	/* create group for i and t */
 	sort `touse' `id'
@@ -149,35 +138,34 @@ program define regife, eclass sortpreserve
 	}
 
 	/* nocons */
-	if "`nocons'" == ""{
+	if "`cons'" == ""{
 		tempvar cons
 		qui gen `cons' = 1
-		local xc `x' `cons'
-		local oldx `oldx' _cons
+		local pcx `px' `cons'
 		local xname `xname' _cons
 	}
 	else{
-		local xc `x'
+		local pcx `px'
 	}
 
 	/* algorithim */
 	* first reg  
-	qui _regress `y' `xc' `wt' if `touse', nocons
+	qui _regress `py' `pcx' `wt' if `touse', nocons
 	matrix `b' = e(b)
 	qui predict `res' if `touse', res
 
 	* iterate 
-	mata: iteration("`y'","`res'", "`xc'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
+	mata: iteration("`py'","`res'", "`pcx'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
 
 	* last reg
-	qui gen `res2' = `y' - `res'
+	qui gen `res2' = `py' - `res'
 	if "`generate'" ~= ""{
 		rename `res' `generate'
 	}
-	qui reg `res2' `xc' `wt', nocons `cl'
+	qui reg `res2' `pcx' `wt' if `touse', nocons `options'
 
 
 	/* return results */
