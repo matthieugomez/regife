@@ -56,9 +56,18 @@ The command `regife` is estimated on the residuals after removing the fixed effe
 use "data/Divorce-Wolfers-AER", clear
 egen state = group(st), label
 keep if inrange(year, 1968, 1988) 
-reghdfe div_rate unilateral divx*  [aw=stpop], a(state year)
+```
 
+Model with state / year fe
+```
+areg div_rate unilateral divx* i.year [aw=stpop], a(state)
+```
+
+Model with interactive fixed effects:
+
+```
 regife div_rate unilateral divx* [w=stpop],  f(state year) d(4) 
+regife div_rate unilateral divx* i.state  i.year [w=stpop],  f(state year) d(4) 
 regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) 
 ```
 
