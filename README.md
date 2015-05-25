@@ -1,10 +1,8 @@
-# stata-regife
 
 A Stata command to compute Interactive fixed effect (Bai 2009)
 
 
-## Syntax
-Syntax is
+The syntax is
 
 ```
 regife y xvarlist, Id(idvar) Time(timevar) Dimension(integer)  ///
@@ -22,19 +20,19 @@ Important: fixed effect specified in `absorbs` must be compatible with an intera
 Save the factors for residuals using the option `gen`
 
 ```
-regife y xvarlist, i(f1=idvar) time(f2=timevar) gen(res)
+regife y xvarlist, i(fi=idvar) time(ft=timevar) gen(res)
 ```
-Save the interactive fixed effect using the symbol equal
+Save the interactive fixed effect using the option `absorb`
 
 ```
-regife y xvarlist, i(f1=idvar) time(f2=timevar) d(2)
+regife y xvarlist, i(fi=idvar) time(ft=timevar)
 ```
 
-You can check that all the equations give the same coefficients for `x`
+You can check that all the equations give the same coefficients:
 
 ```
 regife y xvarlist, i(f1=idvar) t(f2=timevar) d(2)
-reg y xvarlist i.timevar#c.f1
-reg y xvarlist i.idvar#c.f2
+reg y xvarlist i.timevar#c.fi1 i.timevar#c.fi2
+reg y xvarlist i.idvar#c.ft1 i.idvar#c.ft2
 ```
 
