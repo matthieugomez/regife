@@ -6,7 +6,9 @@ The syntax is
 
 ```
 regife y xvarlist, Id(idvar) Time(timevar) Dimension(integer)  ///
-[Absorb(string) noCONS convergence(real 0.000001) MAXiteration(int 500) gen(string)]
+[Absorb(string) noCONS ///
+ convergence(real 0.000001) MAXiteration(int 500) 
+ gen(string)]
 ```
 
 
