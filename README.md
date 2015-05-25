@@ -7,7 +7,7 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 The syntax is
 
 ```
-regife y xvarlist, Factors(idvar timevar)  Dimension(integer)  [
+regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
 	convergence(real 0.000001) MAXiteration(int 500) 
 	GENerate(newvarname)
@@ -19,21 +19,21 @@ regife y xvarlist, Factors(idvar timevar)  Dimension(integer)  [
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
 ```
-regife y xvarlist,  f(fi=id ft=timevar) 
+regife depvar [indepvars],  f(fi=id ft=timevar) 
 ```
 
 Check that all the equations give the same coefficients:
 
 ```
-regife y xvarlist, f(fi=id ft=timevar)  d(2)
-reg y xvarlist i.timevar#c.fi1 i.timevar#c.fi2
-reg y xvarlist i.idvar#c.ft1 i.idvar#c.ft2
+regife depvar [indepvars], f(fi=id ft=timevar)  d(2)
+reg y [indepvars] i.timevar#c.fi1 i.timevar#c.fi2
+reg y [indepvars] i.idvar#c.ft1 i.idvar#c.ft2
 ```
 
 Directly save the factors using the option `gen`
 
 ```
-regife y xvarlist, f(idvar timevar) d(2) gen(res)
+regife depvar [indepvars], f(idvar timevar) d(2) gen(res)
 ```
 
 ### Absorb
