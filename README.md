@@ -18,7 +18,7 @@ You can specified supplementary fixed effect using the option `command`.
 Important: fixed effect specified in `absorbs` must be compatible with an interactive fixed effect model with respect to `id` and `time`. Mathematically, `regife` is estimated on the residuals after removing the fixed effect. 
 
 
-# Save
+### Save
 Save the factors for residuals using the option `gen`
 
 ```
