@@ -5,7 +5,8 @@ A Stata command to compute Interactive fixed effect (Bai 2009)
 Syntax is
 
 ```
-regife yvar xvar, Id(idvar) Time(timevar) Dimension(integer)   [Absorb(string) noCONS convergence(real 0.000001) MAXiteration(int 500) gen(string)]
+regife yvar xvar, Id(idvar) Time(timevar) Dimension(integer)  ///
+[Absorb(string) noCONS convergence(real 0.000001) MAXiteration(int 500) gen(string)]
 ```
 
 
@@ -25,9 +26,9 @@ Save the interactive fixed effect using the symbol equal
 regife yvar xvar, Id(f1=idvar) Time(f2=timevar) d(2)
 ```
 
-For instance, you can reestimate the coefficient by running
+You can check that the following model gives the same coefficient:
 
 ```
 reg yvar xvar i.timevar#c.f1
-
+```
 
