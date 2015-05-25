@@ -2,7 +2,13 @@ cd "/Users/Matthieu/Dropbox/Github/stata-regife"
 insheet using "data/cigar.csv", clear
 
 tsset state year
-reg D.sales D.price 
+regife D.sales D.price, id(state) t(year) d(2)
+
+gen code = mod(_n, 10)
+regife D.sales D.price i.code, ife(state year) d(2)
+
+
+reg D.sales D.price i.code
 
 
 gen dsales = D.sales
