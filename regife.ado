@@ -1,7 +1,9 @@
 program define regife, eclass sortpreserve
 
 	version 12
-	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ Absorb(varlist) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) *]
+	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], /// 
+	Factors(string)   ///
+	[ccep ccemg Dimension(string) Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) *]
 
 
 	/* tempname */
@@ -9,14 +11,13 @@ program define regife, eclass sortpreserve
 	tempname b V
 
 	/* syntax */
-
 	if ("`weight'"!=""){
 		local wt [`weight'`exp']
-		local sumwt [aw`exp']
+		local wtv = subinstr("`exp'","=","", .)
+		local wtv2 "*`wtv'"
 		display as text "Weight are used only for regressions, not for the PCA"
+		local sumwt [aw`exp']
 	}
-
-
 
 
 
@@ -50,7 +51,7 @@ program define regife, eclass sortpreserve
 
 	/* touse */
 	marksample touse
-	markout `touse' `id' `time', strok
+	markout `touse' `id' `time' `wtv', strok
 
 
 	/*syntax varlist  */
@@ -77,12 +78,9 @@ program define regife, eclass sortpreserve
 
 
 
-
-
 	/* absorb */
 	tempname df_a
 	if "`absorb'" ~= ""{
-
 		cap which hdfe.ado
 		if _rc {
 			di as error "hdfe.ado required when using multiple absorb variables:"
@@ -121,13 +119,13 @@ program define regife, eclass sortpreserve
 
 	/* create group for i and t */
 	sort `touse' `id'
-	qui by `touse' `id': gen `g1' = _n == 1 if `touse'
+	qui by `touse' `id': gen long `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
 	local id `g1'
 	local N = `id'[_N]
 
 	sort `touse' `time'
-	qui by `touse' `time': gen `g2' = _n == 1 if `touse'
+	qui by `touse' `time': gen long `g2' = _n == 1 if `touse'
 	qui replace `g2' = sum(`g2') if `touse'
 	local time `g2'
 	local T = `time'[_N]
@@ -203,9 +201,8 @@ program define regife, eclass sortpreserve
 	ereturn scalar error = `error'
 
 
-
 	ereturn local absorb `absorb'
-	ereturn local id1 `idg'
+	ereturn local id1 `id'
 	ereturn local id2 `time'
 	ereturn local f1 `idgen'
 	ereturn local f2 `timegen'
@@ -217,9 +214,7 @@ program define regife, eclass sortpreserve
 	display as text "{lalign 26:R-squared  = }" in ye %10.3fc `r2'
 	display as text "{lalign 26:Within R-sq  = }" in ye %10.3fc `r2w'
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
-
-
-
+	
 end
 
 /***************************************************************************************************
@@ -227,6 +222,21 @@ helper functions
 ***************************************************************************************************/
 
 set matastrict on
+
+mata:
+	void meanvar(real matrix b, real matrix w, string scalar sb1, string scalar sV1){
+		b1 = J(1, cols(b), .)
+		V1 =  J(1, cols(b), .)
+		for(i=1;i<= cols(b);++i){
+			b1[1, i] = mean(b[.,i], w)
+			V1[1, i] = variance(b[.,i], w)
+		}
+		st_matrix(sb1, editmissing(b1,0))
+		st_matrix(sV1, editmissing(diag(V1),0))
+	}
+end
+
+
 mata:
 	void iteration(string scalar y, string scalar res, string scalar x, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
 		real matrix Y 
@@ -240,7 +250,6 @@ mata:
 		real scalar obs
 		real scalar col
 
-		
 		real scalar error
 		real matrix U
 		real matrix V
@@ -282,7 +291,6 @@ mata:
 		st_store(first::last, res, tY)
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(error)", error)
-
 		if (strlen(idgen) > 0){
 			for (col = 1; col <= d; col++){
 				name =  idgen +  "_" + strofreal(col)
@@ -303,6 +311,7 @@ mata:
 		}
 	}
 end
+
 
 
 
