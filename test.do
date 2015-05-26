@@ -27,4 +27,16 @@ assert float(div_rate) == float(new)
 
 
 
+* compare different estimators
+tsset state year
+xtmg  div_rate unilateral, cce
+cce mg div_rate unilateral, f(state year)
+* add year trend
+cce mg div_rate unilateral year, f(state year)
+
+cce p div_rate unilateral, f(state year) vce(cluster state)
+regife div_rate unilateral, f(state year) a(state year) d(2)
+
+
+
 
