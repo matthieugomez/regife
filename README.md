@@ -1,7 +1,9 @@
 
-The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 # regife
+
+The command `regife` estimates models with interactive fixed effects (Bai 2009)
+
 
 
 The syntax is
@@ -14,9 +16,25 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 ]
 ```
 
-### absorb
+# example
 
-The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
+```
+use "data/Divorce-Wolfers-AER", clear
+egen state = group(st), label
+keep if inrange(year, 1968, 1988) 
+```
+
+Model with state / year fe
+```
+reghdfe div_rate unilateral divx* [aw=stpop], a(state year) vce(cluster state)
+```
+
+Model with state / year fe + interactive fixed effects:
+
+```
+regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) vce(cluster state)
+```
+
 
 
 ### save
@@ -49,26 +67,13 @@ predict factors, f
 
 To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
 
-# example
 
-```
-use "data/Divorce-Wolfers-AER", clear
-egen state = group(st), label
-keep if inrange(year, 1968, 1988) 
-```
+### absorb
 
-Model with state / year fe
-```
-areg div_rate unilateral divx* i.year [aw=stpop], a(state)
-```
+The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
-Model with interactive fixed effects:
 
-```
-regife div_rate unilateral divx* [w=stpop],  f(state year) d(4) 
-regife div_rate unilateral divx* i.state  i.year [w=stpop],  f(state year) d(4) 
-regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) 
-```
+
 
 
 # ife

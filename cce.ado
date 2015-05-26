@@ -111,9 +111,7 @@ program define cce, eclass sortpreserve
 		local p `: word count `x''
 		mata: `b' = J(`N', `p', .)
 		local iter = 0
-		tempname b1
-		tempname V1
-		tempname w
+		tempname w b1 V1 ng
 		if "`wt'" ~= ""{
 			mata: `w' = J(`N', 1, 0)
 		}
@@ -166,12 +164,19 @@ program define cce, eclass sortpreserve
 			}
 			local start = `end' + 1
 		}
-		mata: meanvar(`b', `w', "`b1'", "`V1'")
+		mata: meanvar(`b', `w', "`b1'", "`V1'", "`ng'")
 		matrix colnames `b1' = `xname'
 		matrix rownames `V1' = `xname'
 		matrix colnames `V1' = `xname'
 		ereturn post `b1' `V1', depname(`yname') obs(`obs') esample(`touse') 
 		ereturn display
+		display as text "{lalign 26:Number of obs = }" in ye %10.0fc `obs'
+		local i = 0
+		foreach x in `xname'{
+			local ++i
+			display as text "{lalign 26:Number of groups (`x') = }" in ye %10.0fc `ng'[1, `i']
+			ereturn local `x'_n = `ng'[1, `i']
+		}
 	}
 
 end
@@ -183,24 +188,27 @@ helper functions
 set matastrict on
 
 mata:
-	void meanvar(real matrix b, real matrix w, string scalar sb1, string scalar sV1){
+	void meanvar(real matrix b, real matrix w, string scalar sb1, string scalar sV1, string scalar sng){
 		b1 = J(1, cols(b), .)
 		V1 =  J(1, cols(b), .)
-		b
+		ng = J(1, cols(b), .)
 		for(i=1;i<= cols(b);++i){
 			v = rowmissing(b[., i]):==0
 			bnm =  select(b[., i], v)
 			wnm = select(w[., i], v)
-			if (rows(bnm) == 1){
+			ng[1, i] = sum(v)
+			if (ng[1, i] == 1){
 				b1[1, i] = bnm
 			}
-			else if (rows(bnm) > 1){
+			else if (ng[1, i] > 1){
 				b1[1, i] = mean(bnm, wnm)
 				V1[1, i] = variance(bnm, wnm)
 			}
 		}
 		st_matrix(sb1, editmissing(b1,0))
 		st_matrix(sV1, editmissing(diag(V1),0))
+		st_matrix(sng,  editmissing(ng,0))
+
 	}
 end
 

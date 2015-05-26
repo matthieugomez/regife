@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in], Factors(string) Dimension(integer) GENerate(newvarname) [TOLerance(real 1e-61) MAXIterations(int 10000)]
+	syntax varname [if] [in], Factors(string) Dimension(integer) GENerate(string) [TOLerance(real 1e-6) MAXIterations(int 10000)]
 
 	local y `varlist'
 	if "`generate'" ~= ""{
@@ -68,12 +68,12 @@ program define ife, eclass sortpreserve
 	tempvar res
 	gen `res' = `y'
 
-	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiteration', `touse_first', `touse_last', "`idgen'", "`timegen'")
+	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`idgen'", "`timegen'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
-	if `iter' == `maxiteration'{
+	if `iter' == `maxiterations'{
 		display as error "{lalign 26:Convergence error = }" in ye %10.3gc `error'
 	}
 	rename `res' `generate'
