@@ -84,7 +84,7 @@ mata helper
 ***************************************************************************************************/
 set matastrict on
 mata:
-	void iterationf(string scalar y, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar convergence, maxiteration, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
+	void iterationf(string scalar y, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar convergence, maxiterations, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
 		real matrix Y 
 		
 		real scalar iindex
@@ -121,7 +121,7 @@ mata:
 		Y = editmissing(Y, 0)
 		error = 1
 		iter = 0
-		while (((maxiteration == 0) | (iter < maxiteration)) & (error >= convergence)){
+		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= convergence)){
 			iter = iter + 1
 			R2 = Y :+ na :* R1
 			_svd(R2, s, V)

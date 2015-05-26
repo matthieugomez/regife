@@ -74,8 +74,6 @@ The command `regife` is estimated on the residuals after removing the fixed effe
 
 
 
-
-
 # ife
 The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
 
