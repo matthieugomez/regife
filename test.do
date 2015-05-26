@@ -2,7 +2,6 @@ use data/Divorce-Wolfers-AER, clear
 keep if inrange(year, 1968, 1988)
 egen state = group(st), label
 tsset state year
-egen tag = tag(state)
 
 
 regife div_rate unilateral divx*   [w=stpop], f(state year) d(2)
