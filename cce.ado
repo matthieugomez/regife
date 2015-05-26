@@ -1,7 +1,7 @@
 program define cce, eclass sortpreserve
 
 	version 12
-	syntax anything [if] [in] [aweight fweight pweight iweight], Factors(string) [IAbsorb(string) Absorb(string) *]
+	syntax anything [if] [in] [aweight fweight pweight iweight], Factors(string) [Absorb(string) *]
 
 
 	/* syntax */
@@ -20,12 +20,8 @@ program define cce, eclass sortpreserve
 	}
 
 
-	if "`ccep'" ~= "" & "`iabsorb'" ~= ""{
-		dis as error "The estimate ccep only works with the option absorb"
-	}
-
 	if "`ccemg'" ~= "" & "`absorb'" ~= ""{
-		dis as error "The estimate ccemg only works with the option iabsorb"
+		dis as error "The option absorb cannot be used for the ccemg estimate"
 	}
 	
 
