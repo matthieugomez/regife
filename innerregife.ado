@@ -98,9 +98,8 @@ program define innerregife, eclass
 	if "`absorb'" ~= ""{
 		cap which hdfe.ado
 		if _rc {
-			di as error "hdfe.ado required when using multiple absorb variables:"
-			di as error "{stata cap ado uninstall hdfe}"
-			di as error "{stata net install hdfe, from(https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package)}"
+			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
+			exit 111
 		}
 		tempvar sample
 		tempname prefix

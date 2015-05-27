@@ -93,6 +93,11 @@ program define cce, eclass sortpreserve
 		ereturn display
 	} 
 	else if "`ccemg'" ~= ""{
+		cap which reghdfe.ado
+		if _rc {
+			di as error "reghdfe.ado required when using multiple absorb variables: {stata ssc install reghdfe}"
+			exit 111
+		}
 		* remove variables colinear for all groups (this allows to get some means that are at least meaningul)
 		_rmcoll `x' `felist' `wt' in `touse_first'/`touse_last',  forcedrop 
 		local vlist = r(varlist)
