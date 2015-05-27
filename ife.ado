@@ -134,6 +134,8 @@ mata:
 			st_store(obs, index, R2[_st_data(obs, iindex), _st_data(obs, tindex)])
 		}	
 
+		st_numscalar("r(N)", iter)
+		st_numscalar("r(error)", error)
 
 		if (strlen(idgen) > 0){
 			for (col = 1; col <= d; col++){
