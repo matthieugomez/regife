@@ -24,21 +24,21 @@ egen state = group(st), label
 keep if inrange(year, 1968, 1988) 
 ```
 
-Model with state / year fe
+Model with interactive fixed effects
 ```
-reghdfe div_rate unilateral divx* [aw=stpop], a(state year) vce(cluster state)
+regife div_rate unilateral, f(state year) d(3)
 ```
 
 Model with state / year fe + interactive fixed effects:
 
 ```
-regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) vce(cluster state)
+regife div_rate unilateral  [w=stpop],  f(state year) a(state year) d(3)
 ```
 
 
 
 # Standard errors
-Standard errors can be obtained by boostrap. Just use the option `reps` (with `cluster` if you want to compute the right errors)
+Correct standard errors can be obtained by boostrap. Just use the option `reps`:
 
 ```
 regife div_rate unilateral, f(state year) d(2) a(state year) reps(50)
@@ -51,7 +51,7 @@ regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
 ```
 
 
-### save
+### Predict
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
@@ -59,13 +59,6 @@ Save the interactive fixed effect using the symbol `=` in the option `ife`
 regife div_rate unilateral , f(fs=state fy=year) d(2) a(state year) reps(50)
 ```
 
-Check that all the equations give the same coefficients:
-
-```
-regife div_rate unilateral, f(fs=state fy=year)  d(2)
-reg div_rate unilateral i.year#c.fs1 i.year#c.fs2
-reg div_rate unilateral i.state#c.fy1 i.state#c.fy2
-```
 
 Generate the estimated factor using `predict`:
 
@@ -82,7 +75,7 @@ predict factors, f
 To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
 
 
-### absorb
+### Absorb
 
 The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
@@ -100,7 +93,7 @@ ife div_rate unilateral, f(fs=state fy=year)  d(2)
 ```
 
 
-# installation
+# Installation
 
 
 ```
