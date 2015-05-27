@@ -70,11 +70,11 @@ To use the option `f`, `xb` and `resf`, you need to save the interactive fixed e
 The syntax is
 
 ```
-regife depvar [indepvars]  [aweight pweight fweight] [if] [in], Factors(idvar timevar) Dimension(integer)  [
+regife depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
+	Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
 	TOLerance(real 1e-6) MAXIterations(int 10000) 
-	GENerate(newvarname)
-]
+	]
 ```
 
 
