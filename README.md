@@ -16,7 +16,7 @@ Model with interactive fixed effects
 regife div_rate unilateral, f(state year) d(3)
 ```
 
-Model with state / year fe + interactive fixed effects:
+Model with interactive fixed effects beyond state + year fe
 
 ```
 regife div_rate unilateral,  f(state year) a(state year) d(3)
