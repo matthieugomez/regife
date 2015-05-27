@@ -24,7 +24,7 @@ regife div_rate unilateral  [w=stpop],  f(state year) a(state year) d(3)
 
 
 
-# Standard errors
+## Standard errors
 Correct standard errors can be obtained by boostrap. Just use the option `reps`:
 
 ```
@@ -38,7 +38,7 @@ regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
 ```
 
 
-### Predict
+## Predict
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
@@ -62,13 +62,11 @@ predict factors, f
 To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
 
 
-### Absorb
-
-The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
 
 
-### Syntax
+
+## Syntax
 The syntax is
 
 ```
@@ -79,7 +77,9 @@ regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer) 
 ]
 ```
 
-# example
+
+The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
+
 
 
 # ife
