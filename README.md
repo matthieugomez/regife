@@ -5,19 +5,6 @@
 The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 
-
-The syntax is
-
-```
-regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer)  [
-	Absorb(string) noCONS 
-	TOLerance(real 1e-6) MAXIterations(int 10000) 
-	GENerate(newvarname)
-]
-```
-
-# example
-
 ```
 use "data/Divorce-Wolfers-AER", clear
 egen state = group(st), label
@@ -81,8 +68,18 @@ The command `regife` is estimated on the residuals after removing the fixed effe
 
 
 
+### Syntax
+The syntax is
 
+```
+regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer)  [
+	Absorb(string) noCONS 
+	TOLerance(real 1e-6) MAXIterations(int 10000) 
+	GENerate(newvarname)
+]
+```
 
+# example
 
 
 # ife
