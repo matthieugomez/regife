@@ -15,63 +15,43 @@ program define regife, eclass sortpreserve
 
 	
 	/* syntax factors */
-	local factors = trim("`factors'")
-	if regexm("`factors'", "(.+)=(.+) (.+)=(.+)"){
-		local id1gen `=regexs(1)'
-		local id1 = regexs(2)
-		local id2gen `=regexs(3)'
-		local id2 = regexs(4)
+	while (regexm("`factors'", "[ ][ ]+")) {
+		local factors : subinstr local factors "  " " ", all
 	}
-	else if regexm("`factors'", "(.+) (.+)=(.+)"){
-		local id1 = regexs(1)
-		local id2gen `=regexs(2)'
-		local id2 = regexs(3)
-	}
-	else if regexm("`factors'", "(.+)=(.+) (.+)"){
-		local id1gen `=regexs(1)'
-		local id1 = regexs(2)
-		local id2 = regexs(3)
-	}
-	else if regexm("`factors'", "(.*) (.*)"){
-		local id1 = regexs(1)
-		local id2 = regexs(2)
-	}
-	else{
-		di as error " could not understand syntax for the option factors"
-		exit
-	}
-	confirm var `id1'
-	confirm var `id2'
-	if "`id1gen'" ~= ""{
-		forval i = 1/`dimension'{
-			cap confirm new variable `id1gen'_`i'
-			if _rc{
-			if _rc == 198{
-				di as error "variable `id1gen'_`i' is not a valid name"
-			}
-			else if _rc == 110{
-				di as error "variable `id1gen'_`i' already defined"
-			}
-			exit 198
-		}
+	local factors : subinstr local factors " =" "=", all
+	local factors : subinstr local factors "= " "=", all
 
-		}
+	cap assert `: word count `factors'' == 2
+	if _rc{
+		di as error "There must be exactly two variables in the option factors"
+		exit 
 	}
-	if "`id2gen'" ~= ""{
-		forval i = 1/`dimension'{
-			cap confirm new variable `id2gen'_`i'
-			if _rc{
-			if _rc == 198{
-				di as error "variable `id2gen'_`i' is not a valid name"
-			}
-			else if _rc == 110{
-				di as error "variable `id1gen'_`i' already defined"
-			}
-			exit 198
-		}
 
+	forv i = 1/2{	 
+		local f : word `i' of `factors'
+		if regexm("`f'", "(.+)=(.+)"){
+			local id`i'gen `=regexs(1)'
+			local id`i' = regexs(2)
+			forval d = 1/`dimension'{
+				cap confirm new variable `id`i'gen'_`d'
+				if _rc{
+					if _rc == 198{
+						di as error "variable `id`i'gen'_`d' is not a valid name"
+					}
+					else if _rc == 110{
+						di as error "variable `id`i'gen'_`d' already defined"
+					}
+					exit 198
+				}
+			}
 		}
+		else{
+			local id`i' `f'
+		}
+		confirm var `id`i''
 	}
+
+
 
 
 	if ("`weight'"!=""){
