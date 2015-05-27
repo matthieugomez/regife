@@ -37,26 +37,40 @@ regife div_rate unilateral divx* [w=stpop],  f(state year) a(state year) d(4) vc
 
 
 
+# Standard errors
+Standard errors can be obtained by boostrap. Just use the option `reps` (with `cluster` if you want to compute the right errors)
+
+```
+regife div_rate unilateral, f(state year) d(2) a(state year) reps(50)
+```
+
+To block bootstrap by state:
+
+```
+regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
+```
+
+
 ### save
 
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
 ```
-regife depvar [indepvars],  f(f1=firm f2=year) 
+regife div_rate unilateral , f(fs=state fy=year) d(2) a(state year) reps(50)
 ```
 
 Check that all the equations give the same coefficients:
 
 ```
-regife depvar [indepvars], f(fi=id ft=timevar)  d(2)
-reg y [indepvars] i.timevar#c.fi1 i.timevar#c.fi2
-reg y [indepvars] i.idvar#c.ft1 i.idvar#c.ft2
+regife div_rate unilateral, f(fs=state fy=year)  d(2)
+reg div_rate unilateral i.year#c.fs1 i.year#c.fs2
+reg div_rate unilateral i.state#c.fy1 i.state#c.fy2
 ```
 
-Obtain the factor using `predict`:
+Generate the estimated factor using `predict`:
 
 ```
-regife depvar [indepvars],  f(f1=firm f2=year) 
+regife div_rate unilateral, f(fs=state fy=year)  d(2)
 predict factors, f
 ```
 - `f` returns the factor term
@@ -74,25 +88,15 @@ The command `regife` is estimated on the residuals after removing the fixed effe
 
 
 
+
+
+
+
 # ife
 The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
 
 ```
-ife x, f(idvar timevar) d(2) gen(res)
-```
-
-
-# Standard errors
-Standard errors can be obtained by boostrap. Just use the option `reps` (with `cluster` if you want to compute the right errors)
-
-```
-egidfe div_rate unilateral divx* , f(state year) d(2) a(state year) reps(50)
-```
-
-To block bootstrap by state:
-
-```
-egidfe div_rate unilateral divx* , f(state year) d(2) a(state year) reps(50) cl(state)
+ife div_rate unilateral, f(fs=state fy=year)  d(2)
 ```
 
 

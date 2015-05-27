@@ -187,8 +187,8 @@ program define innerregife, eclass
 	scalar `df_r' = `obs' - `df_m'
 
 	mat `b' = e(b)
+	mat `V' = e(V)
 	mat colnames `b' =`xname'
-	mat `V' = 0
 	mat colnames `V' =`xname'
 	mat rownames `V' =`xname'
 

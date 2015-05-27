@@ -4,6 +4,7 @@
 program define regife, sortpreserve
 	version 12
 	syntax anything, Factors(string) [CLuster(string) reps(string) *]
+
 	if "`reps'" == "" {
 		di as text "Use the option reps() to compute errors by bootstrap"
 		innerregife `anything', factors(`factors') `options'
