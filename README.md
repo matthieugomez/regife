@@ -81,12 +81,36 @@ The command `ife` estimates a factor model for a given variable. Contrary to Sta
 ife x, f(idvar timevar) d(2) gen(res)
 ```
 
+
+# Standard errors
+Standard errors reported are the ones of the dependent variable minus estimated factor structore over the regressor (adjusted for (T+N)*d number of freedoms corresponding to interactive fixed effects).
+They are incorrect.
+
+Correct standard errors can be obtained by boostrap
+
+```
+bootstrap , reps(50): regidfe div_rate unilateral divx* , f(state year) d(2) a(state year)
+
+```
+
+To cluster by state, 
+
+```
+gen newstate = state
+tsset newstate year
+bootstrap, reps(50) cluster(state) idcluster(newstate): regidfe div_rate unilateral divx* , f(state year) d(2) a(state year)
+```
+
 # installation
+
+
+```
+net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
+```
 
 `regife` requires the command `hdfe` if you use the option `absorb`
 
 ```
 cap ado uninstall reghdfe
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
-net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```

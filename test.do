@@ -11,6 +11,10 @@ regife div_rate unilateral divx* [aw=stpop], f(state year) d(2) a(state year)
 regife div_rate unilateral divx*  i.state i.year [aw=stpop], f(state year) d(2)
 
 
+
+
+
+
 * check lagged and factor display correctly
 regife div_rate L.unilateral i.year   [aw=stpop], f(state year) d(2)
 tab year, gen(tempyear)
@@ -40,3 +44,11 @@ regife div_rate unilateral, f(state year) a(state year) d(2)
 
 
 
+
+/* weight */
+gen weight2 = mod(state, 4) + 1
+expand weight2 
+egen t = tag(state year)
+regife div_rate unilateral   [pw=weight2] if t , f(state year) d(2)
+
+regife div_rate unilateral , f(state year) d(2)

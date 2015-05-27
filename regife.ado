@@ -6,49 +6,79 @@ program define regife, eclass sortpreserve
 	version 12
 	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], /// 
 	Factors(string)  Dimension(int) ///
-	[ccep ccemg  Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose *]
+	[ccep ccemg  Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 
 	/* tempname */
 	tempvar res res2 y2 g1 g2
 	tempname b V
 
-	/* syntax */
-
-
-
-
+	
 	/* syntax factors */
 	local factors = trim("`factors'")
-	if regexm("`factors'", "(.+[^=]) ([^=].+)"){
+	if regexm("`factors'", "(.+)=(.+) (.+)=(.+)"){
+		local id1gen `=regexs(1)'
+		local id1 = regexs(2)
+		local id2gen `=regexs(3)'
+		local id2 = regexs(4)
+	}
+	else if regexm("`factors'", "(.+) (.+)=(.+)"){
+		local id1 = regexs(1)
+		local id2gen `=regexs(2)'
+		local id2 = regexs(3)
+	}
+	else if regexm("`factors'", "(.+)=(.+) (.+)"){
+		local id1gen `=regexs(1)'
+		local id1 = regexs(2)
+		local id2 = regexs(3)
+	}
+	else if regexm("`factors'", "(.*) (.*)"){
 		local id1 = regexs(1)
 		local id2 = regexs(2)
 	}
-
-	if regexm("`id1'", "(.*)=(.*)"){
-		local id1gen `= regexs(1)'
-		forval i = 1/`dimension'{
-			confirm new variable `id1gen'_`i'
-		}
-		local id1 = regexs(2)
+	else{
+		di as error " could not understand syntax for the option factors"
+		exit
 	}
 	confirm var `id1'
-
-	if regexm("`id2'", "([^ ]*)=([^ ]*)"){
-		local id2gen `= regexs(1)'
-		forval i = 1/`dimension'{
-			confirm new variable `id2gen'_`i'
-		}
-		local id2 = regexs(2)
-	}
 	confirm var `id2'
+	if "`id1gen'" ~= ""{
+		forval i = 1/`dimension'{
+			cap confirm new variable `id1gen'_`i'
+			if _rc{
+			if _rc == 198{
+				di as error "variable `id1gen'_`i' is not a valid name"
+			}
+			else if _rc == 110{
+				di as error "variable `id1gen'_`i' already defined"
+			}
+			exit 198
+		}
+
+		}
+	}
+	if "`id2gen'" ~= ""{
+		forval i = 1/`dimension'{
+			cap confirm new variable `id2gen'_`i'
+			if _rc{
+			if _rc == 198{
+				di as error "variable `id2gen'_`i' is not a valid name"
+			}
+			else if _rc == 110{
+				di as error "variable `id1gen'_`i' already defined"
+			}
+			exit 198
+		}
+
+		}
+	}
 
 
 	if ("`weight'"!=""){
 		local wt [`weight'`exp']
 		local wtv = subinstr("`exp'","=","", .)
 		local wtv2 "*`wtv'"
-		display as text "Weight are used for regressions, and are summed accross variable `id2' for the PCA"
+		display as text "Weight are used for regressions, not for the PCA"
 		local sumwt [aw`exp']
 	}
 
@@ -168,7 +198,7 @@ program define regife, eclass sortpreserve
 
 	* last reg
 	qui gen `res2' = `py' - `res'
-	qui reg `res2' `px' `wt' if `touse', `cons' `options'
+	qui reg `res2' `px' `wt' if `touse', `cons' 
 
 	/* return results */
 	tempname df_m
@@ -258,15 +288,16 @@ mata:
 		b1 = st_matrix(bname)'
 		X = st_data((first::last), x)
 
-		Ws = J(N, T, 1)
 		if (strlen(w) > 0) {
 			W = st_data((first::last), w)
 			M = invsym(cross(X, W, X)) * X'* diag(W)
+			/* define vector weight for each N (as sum of individual weight) */
+			Ws = J(N, T, 1)
 			for (obs = first; obs <= last ; obs++) {    
 				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] = W[obs - first + 1, 1]
 			}
-			Ws= rowsum(Ws)
-			Ws = sqrt(Ws:/mean(Ws))
+			Ws= rowsum(Ws)/cols(Ws)
+			Ws =sqrt(Ws)
 		}
 		else{
 			M = invsym(cross(X, X)) * X'
@@ -277,6 +308,7 @@ mata:
 		iter = 0
 		error = 1
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
+			iter = iter + 1
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
 					if (iter == 100){
@@ -285,32 +317,40 @@ mata:
 					stata(`"display "." _c"')
 				}
 			}
-			iter = iter + 1
+			/* construct residual matrix */
 			tY = Y :-  X * b1
 			for (obs = first; obs <= last ; obs++) {    
 				R[_st_data(obs, iindex), _st_data(obs, tindex)] = tY[obs - first + 1, 1]
 			}
-			if (strlen(w) > 0) {
-				R = Ws :* R
+			/*  if (strlen(w) > 0) {
+				R = R 
 			}
+			*/
+			/* do PCA of residual */
 			_svd(R, s, V)
 			U = R[.,(1::d)] * diag(s[1::d]) 
+			/*  
 			if (strlen(w) > 0) {
-				 U = U :/ Ws
+				U = U
 			}
+			*/
 			R = U *  V[(1::d),.]
 			for (obs = first; obs <= last ; obs++) {    
 				tY[obs - first + 1,1] = R[_st_data(obs, iindex),_st_data(obs, tindex)] 
 			}	
+			/* estimate coefficient of (Y- PCA(RES)) on b */
 			b2 = M * (Y :- tY)
 			error = max(abs(b2 :- b1))
 			b1 = b2
 		}
+
+		/* store factors if asked. note normalization in Bai different from svd in stata that has VV" = I rather than VV'/T = I */
 		st_store(first::last, res, tY)
 		if (strlen(idgen) > 0){
 			for (col = 1; col <= d; col++){
 				name =  idgen +  "_" + strofreal(col)
 				st_addvar("float", name)
+				U = U :/ sqrt(T)
 				for (obs = first; obs <= last ; obs++) { 
 					st_store(obs, 	name, U[_st_data(obs, iindex), col])
 				} 
@@ -319,6 +359,7 @@ mata:
 		if (strlen(timegen) > 0){
 			for (col = 1; col <= d; col++){
 				name =  timegen + "_" + strofreal(col)
+				V = V:* sqrt(T)
 				st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
 					st_store(obs, name, V[col, _st_data(obs, tindex)])
