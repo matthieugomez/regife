@@ -25,13 +25,13 @@ regife div_rate unilateral,  f(state year) a(state year) d(3)
 
 
 ## Standard errors
-Correct standard errors can be obtained by boostrap. Just use the option `reps`:
+Correct standard errors must be obtained by boostrap : just use the option `reps`:
 
 ```
 regife div_rate unilateral, f(state year) d(2) a(state year) reps(50)
 ```
 
-To block bootstrap by state:
+To block bootstrap, use the option `cluster`
 
 ```
 regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
@@ -47,7 +47,7 @@ regife div_rate unilateral , f(fs=state fy=year) d(2) a(state year) reps(50)
 ```
 
 
-Generate the estimated factor using `predict`:
+After saving these fixed effects, you can generate the estimated factor using `predict`:
 
 ```
 regife div_rate unilateral, f(fs=state fy=year)  d(2)
@@ -78,7 +78,7 @@ regife depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
 ```
 
 
-The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
+Note on the `absorb` option: the command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
 
 
 
