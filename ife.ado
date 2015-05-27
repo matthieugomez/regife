@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in], Factors(string) Dimension(integer) GENerate(string) [TOLerance(real 1e-6) MAXIterations(int 10000)]
+	syntax varname [if] [in], Factors(string) Dimension(integer) GENerate(string) [TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	local y `varlist'
 	if "`generate'" ~= ""{
@@ -68,7 +68,7 @@ program define ife, eclass sortpreserve
 	tempvar res
 	gen `res' = `y'
 
-	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`idgen'", "`timegen'")
+	mata: iterationf("`res'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`idgen'", "`timegen'", "`verbose'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -84,7 +84,7 @@ mata helper
 ***************************************************************************************************/
 set matastrict on
 mata:
-	void iterationf(string scalar y, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar convergence, maxiterations, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
+	void iterationf(string scalar y, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar convergence, maxiterations, real scalar first, real scalar last, string scalar idgen, string scalar timegen, string scalar verbose){
 		real matrix Y 
 		
 		real scalar iindex
@@ -122,6 +122,16 @@ mata:
 		error = 1
 		iter = 0
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= convergence)){
+
+			if (strlen(verbose) > 0){
+				if ((mod(iter, 100)==0) & (iter > 0)){
+					if (iter == 100){
+						stata(`"display as text "each .=100 iterations""')
+					}
+					stata(`"display "." _c"')
+				}
+			}
+
 			iter = iter + 1
 			R2 = Y :+ na :* R1
 			_svd(R2, s, V)

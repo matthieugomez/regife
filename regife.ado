@@ -1,9 +1,12 @@
+/***************************************************************************************************
+
+***************************************************************************************************/
 program define regife, eclass sortpreserve
 
 	version 12
 	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], /// 
-	Factors(string)   ///
-	[ccep ccemg Dimension(string) Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) *]
+	Factors(string)  Dimension(int) ///
+	[ccep ccemg  Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose *]
 
 
 	/* tempname */
@@ -11,47 +14,49 @@ program define regife, eclass sortpreserve
 	tempname b V
 
 	/* syntax */
-	if ("`weight'"!=""){
-		local wt [`weight'`exp']
-		local wtv = subinstr("`exp'","=","", .)
-		local wtv2 "*`wtv'"
-		display as text "Weight are used only for regressions, not for the PCA"
-		local sumwt [aw`exp']
-	}
+
 
 
 
 	/* syntax factors */
 	local factors = trim("`factors'")
-	if regexm("`factors'", "(.+[^=]*) ([^=]*.+)"){
-		local id = regexs(1)
-		local time = regexs(2)
+	if regexm("`factors'", "(.+[^=]) ([^=].+)"){
+		local id1 = regexs(1)
+		local id2 = regexs(2)
 	}
 
-	if regexm("`id'", "(.*)=(.*)"){
-		local idgen `= regexs(1)'
+	if regexm("`id1'", "(.*)=(.*)"){
+		local id1gen `= regexs(1)'
 		forval i = 1/`dimension'{
-			confirm new variable `idgen'_`i'
+			confirm new variable `id1gen'_`i'
 		}
-		local id = regexs(2)
+		local id1 = regexs(2)
 	}
-	confirm var `id'
+	confirm var `id1'
 
-	if regexm("`time'", "([^ ]*)=([^ ]*)"){
-		local timegen `= regexs(1)'
+	if regexm("`id2'", "([^ ]*)=([^ ]*)"){
+		local id2gen `= regexs(1)'
 		forval i = 1/`dimension'{
-			confirm new variable `timegen'_`i'
+			confirm new variable `id2gen'_`i'
 		}
-		local time = regexs(2)
+		local id2 = regexs(2)
 	}
-	confirm var `time'
+	confirm var `id2'
 
+
+	if ("`weight'"!=""){
+		local wt [`weight'`exp']
+		local wtv = subinstr("`exp'","=","", .)
+		local wtv2 "*`wtv'"
+		display as text "Weight are used for regressions, and are summed accross variable `id2' for the PCA"
+		local sumwt [aw`exp']
+	}
 
 
 
 	/* touse */
 	marksample touse
-	markout `touse' `id' `time' `wtv', strok
+	markout `touse' `id1' `id2' `wtv', strok
 
 
 	/*syntax varlist  */
@@ -109,7 +114,7 @@ program define regife, eclass sortpreserve
 		local py `y'
 		scalar `df_a' = 0
 	}
-	/* count number of observations. since I don't look at syntax of absorb, I need to count after hdfe redefines touse */
+	/* count number of observations (after hdfe since it reads the absorb syntax) */
 	sort `touse'
 	qui count if `touse' 
 	local touse_first = _N - r(N) + 1
@@ -118,22 +123,20 @@ program define regife, eclass sortpreserve
 
 
 	/* create group for i and t */
-	sort `touse' `id'
-	qui by `touse' `id': gen long `g1' = _n == 1 if `touse'
+	sort `touse' `id1'
+	qui by `touse' `id1': gen long `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
-	local id `g1'
-	local N = `id'[_N]
+	local N = `g1'[_N]
 
-	sort `touse' `time'
-	qui by `touse' `time': gen long `g2' = _n == 1 if `touse'
+	sort `touse' `id2'
+	qui by `touse' `id2': gen long `g2' = _n == 1 if `touse'
 	qui replace `g2' = sum(`g2') if `touse'
-	local time `g2'
-	local T = `time'[_N]
+	local T = `g2'[_N]
 
 
 	cap assert `T' >= `dimension'
 	if _rc{
-		di as error "The dimension `dimension' should be lower than the number of distinct values for `time'"
+		di as error "The dimension `dimension' should be lower than the number of distinct values for `id2'"
 		exit 0
 	}
 
@@ -155,8 +158,9 @@ program define regife, eclass sortpreserve
 	qui predict `res' if `touse'
 
 
+
 	* iterate 
-	mata: iteration("`py'","`res'", "`pcx'", "`id'", "`time'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idgen'", "`timegen'")
+	mata: iteration("`py'","`res'", "`pcx'", "`wtv'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`verbose'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -188,6 +192,7 @@ program define regife, eclass sortpreserve
 	tempname r2
 	scalar `r2' = (`r2w' * `rpartial' + `rtotal'- `rpartial') / `rtotal'
 
+	di
 	if `iter' == `maxiterations'{
 		display as text "The algorithm did not converge : error is" in ye %4.3gc `error' in text " (higher than tolerance" in ye %4.3gc `tolerance' in text")"
 		display as text "Use the maxiterations options to increase the amount of iterations"
@@ -202,10 +207,10 @@ program define regife, eclass sortpreserve
 
 
 	ereturn local absorb `absorb'
-	ereturn local id1 `id'
-	ereturn local id2 `time'
-	ereturn local f1 `idgen'
-	ereturn local f2 `timegen'
+	ereturn local id1 `id1'
+	ereturn local id2 `id2'
+	ereturn local f1 `id1'
+	ereturn local f2 `id2gen'
 	ereturn local d `dimension'
 	ereturn local predict "regife_p"
 
@@ -214,35 +219,22 @@ program define regife, eclass sortpreserve
 	display as text "{lalign 26:R-squared  = }" in ye %10.3fc `r2'
 	display as text "{lalign 26:Within R-sq  = }" in ye %10.3fc `r2w'
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
-	
+
 end
 
 /***************************************************************************************************
 helper functions
 ***************************************************************************************************/
-
 set matastrict on
-
 mata:
-	void meanvar(real matrix b, real matrix w, string scalar sb1, string scalar sV1){
-		b1 = J(1, cols(b), .)
-		V1 =  J(1, cols(b), .)
-		for(i=1;i<= cols(b);++i){
-			b1[1, i] = mean(b[.,i], w)
-			V1[1, i] = variance(b[.,i], w)
-		}
-		st_matrix(sb1, editmissing(b1,0))
-		st_matrix(sV1, editmissing(diag(V1),0))
-	}
-end
 
 
-mata:
-	void iteration(string scalar y, string scalar res, string scalar x, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen){
+	void iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen, string scalar verbose){
 		real matrix Y 
 		real matrix X
 		real matrix tY
 		real matrix M
+		real matrix Ws
 		real scalar iindex
 		real scalar tindex
 
@@ -263,23 +255,49 @@ mata:
 		iindex = st_varindex(id)
 		tindex = st_varindex(time)
 		Y = st_data((first::last), y)
-		tY = st_data((first::last), res)
 		b1 = st_matrix(bname)'
 		X = st_data((first::last), x)
-		M = invsym(cross(X, X)) * X'
+
+		Ws = J(N, T, 1)
+		if (strlen(w) > 0) {
+			W = st_data((first::last), w)
+			M = invsym(cross(X, W, X)) * X'* diag(W)
+			for (obs = first; obs <= last ; obs++) {    
+				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] = W[obs - first + 1, 1]
+			}
+			Ws= rowsum(Ws)
+			Ws = sqrt(Ws:/mean(Ws))
+		}
+		else{
+			M = invsym(cross(X, X)) * X'
+		}
 
 		R = J(N, T, 0)
 		V = J(T, T, .)
 		iter = 0
 		error = 1
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
+			if (strlen(verbose) > 0){
+				if ((mod(iter, 100)==0) & (iter > 0)){
+					if (iter == 100){
+						stata(`"display as text "each .=100 iterations""')
+					}
+					stata(`"display "." _c"')
+				}
+			}
 			iter = iter + 1
 			tY = Y :-  X * b1
 			for (obs = first; obs <= last ; obs++) {    
 				R[_st_data(obs, iindex), _st_data(obs, tindex)] = tY[obs - first + 1, 1]
 			}
+			if (strlen(w) > 0) {
+				R = Ws :* R
+			}
 			_svd(R, s, V)
 			U = R[.,(1::d)] * diag(s[1::d]) 
+			if (strlen(w) > 0) {
+				 U = U :/ Ws
+			}
 			R = U *  V[(1::d),.]
 			for (obs = first; obs <= last ; obs++) {    
 				tY[obs - first + 1,1] = R[_st_data(obs, iindex),_st_data(obs, tindex)] 
@@ -289,8 +307,6 @@ mata:
 			b1 = b2
 		}
 		st_store(first::last, res, tY)
-		st_numscalar("r(N)", iter)
-		st_numscalar("r(error)", error)
 		if (strlen(idgen) > 0){
 			for (col = 1; col <= d; col++){
 				name =  idgen +  "_" + strofreal(col)
@@ -309,9 +325,42 @@ mata:
 				} 
 			}
 		}
+		st_numscalar("r(N)", iter)
+		st_numscalar("r(error)", error)
 	}
 end
 
+/***************************************************************************************************
+wls in mata
+set matastrict on
+cap mata: mata drop wols()
+mata:
+	void wols(string scalar y, string scalar x, string scalar w, numeric scalar first, numeric scalar last, string scalar newres){
+		real matrix Y 
+		real matrix X
+		real matrix W
+		real matrix M
+		real scalar b
+		real matrix res
+		Y = st_data((first::last), y)
+		X = st_data((first::last), x)
+		if (strlen(w) > 0) {
+			W = st_data((first::last), w)
+			/*W = sqrt(W/mean(W))  */
+			M = invsym(cross(X, W, X)) * X'* diag(W)
+		}
+		else{
+			M = invsym(cross(X, X)) * X'
+		}
+		b = M * Y 
+		b
+		res = Y :-  X * b
+		st_addvar("float", newres)
+		st_store(first::last, newres, res)
+
+	}
+end
+***************************************************************************************************/
 
 
 
