@@ -11,12 +11,12 @@ egen state = group(st), label
 keep if inrange(year, 1968, 1988) 
 ```
 
-Model with interactive fixed effects
+Model with interactive fixed effects (3 factors)
 ```
 regife div_rate unilateral, f(state year) d(3)
 ```
 
-Model with interactive fixed effects beyond state + year fe
+Model with interactive fixed effects (3 factors) beyond state + year fe
 
 ```
 regife div_rate unilateral,  f(state year) a(state year) d(3)
@@ -43,7 +43,7 @@ regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
 Save the interactive fixed effect using the symbol `=` in the option `ife`
 
 ```
-regife div_rate unilateral , f(fs=state fy=year) d(2) a(state year) reps(50)
+regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year) reps(50)
 ```
 
 
@@ -83,7 +83,11 @@ Note on the `absorb` option: the command `regife` is estimated on the residuals 
 
 
 # ife
-The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, this allows to estimate PCA on a dataset in a long form (in particular panel data). Moreover, it handles unbalanced panels using an algorithm akin to Stock and Watson (1998).
+The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, 
+- this allows to estimate PCA on a dataset in a long form (in particular panel data)
+- it handles unbalanced panels using an algorithm akin to Stock and Watson (1998). 
+
+Missing combinations id x date in the dataset are considered to be missing, not zero.
 
 ```
 ife div_rate unilateral, f(fs=state fy=year)  d(2)
@@ -94,12 +98,11 @@ ife div_rate unilateral, f(fs=state fy=year)  d(2)
 
 
 ```
-net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
+net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
 
-If you want to use the option `absorb`, you should download the command `hdfe` 
+If you want to use the option `absorb`, you must download the command `hdfe` 
 
 ```
-cap ado uninstall reghdfe
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 ```
