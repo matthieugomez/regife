@@ -86,20 +86,18 @@ ife x, f(idvar timevar) d(2) gen(res)
 Standard errors reported are the ones of the dependent variable minus estimated factor structore over the regressor (adjusted for (T+N)*d number of freedoms corresponding to interactive fixed effects).
 They are incorrect.
 
-Correct standard errors can be obtained by boostrap
+Correct standard errors can be obtained by boostrap. Just use the option `reps` (with `cluster` if you want to compute the right errors)
 
 ```
-bootstrap , reps(50): regidfe div_rate unilateral divx* , f(state year) d(2) a(state year)
-
+egidfe div_rate unilateral divx* , f(state year) d(2) a(state year) reps(50)
 ```
 
-To cluster by state, 
+To block bootstrap by state:
 
 ```
-gen newstate = state
-tsset newstate year
-bootstrap, reps(50) cluster(state) idcluster(newstate): regidfe div_rate unilateral divx* , f(state year) d(2) a(state year)
+egidfe div_rate unilateral divx* , f(state year) d(2) a(state year) reps(50) cl(state)
 ```
+
 
 # installation
 

@@ -1,19 +1,19 @@
+
 /***************************************************************************************************
 
 ***************************************************************************************************/
-program define regife, eclass sortpreserve
-
+program define innerregife, eclass 
 	version 12
 	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], /// 
 	Factors(string)  Dimension(int) ///
-	[ccep ccemg  Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	[ Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 
 	/* tempname */
 	tempvar res res2 y2 g1 g2
 	tempname b V
 
-	
+
 	/* syntax factors */
 	while (regexm("`factors'", "[ ][ ]+")) {
 		local factors : subinstr local factors "  " " ", all
@@ -188,7 +188,7 @@ program define regife, eclass sortpreserve
 
 	mat `b' = e(b)
 	mat colnames `b' =`xname'
-	mat `V' = e(V) * e(df_r)/ `df_r'
+	mat `V' = 0
 	mat colnames `V' =`xname'
 	mat rownames `V' =`xname'
 
@@ -350,38 +350,6 @@ mata:
 		st_numscalar("r(error)", error)
 	}
 end
-
 /***************************************************************************************************
-wls in mata
-set matastrict on
-cap mata: mata drop wols()
-mata:
-	void wols(string scalar y, string scalar x, string scalar w, numeric scalar first, numeric scalar last, string scalar newres){
-		real matrix Y 
-		real matrix X
-		real matrix W
-		real matrix M
-		real scalar b
-		real matrix res
-		Y = st_data((first::last), y)
-		X = st_data((first::last), x)
-		if (strlen(w) > 0) {
-			W = st_data((first::last), w)
-			/*W = sqrt(W/mean(W))  */
-			M = invsym(cross(X, W, X)) * X'* diag(W)
-		}
-		else{
-			M = invsym(cross(X, X)) * X'
-		}
-		b = M * Y 
-		b
-		res = Y :-  X * b
-		st_addvar("float", newres)
-		st_store(first::last, newres, res)
 
-	}
-end
 ***************************************************************************************************/
-
-
-
