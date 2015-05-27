@@ -204,7 +204,7 @@ program define innerregife, eclass
 
 	di
 	if `iter' == `maxiterations'{
-		display as text "The algorithm did not converge : error is" in ye %4.3gc `error' in text " (higher than tolerance" in ye %4.3gc `tolerance' in text")"
+		display as text "The algorithm did not converge : convergence error is" in ye %4.3gc `error' in text " (tolerance" in ye %4.3gc `tolerance' in text")"
 		display as text "Use the maxiterations options to increase the amount of iterations"
 	}
 
@@ -213,7 +213,7 @@ program define innerregife, eclass
 	ereturn scalar df_m = `df_m'
 	ereturn scalar r2_within = `r2w'
 	ereturn scalar r2 = `r2'
-	ereturn scalar error = `error'
+	ereturn scalar convergence_error = `error'
 
 
 	ereturn local absorb `absorb'

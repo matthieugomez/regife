@@ -6,13 +6,14 @@ program define regife, sortpreserve
 	syntax anything, Factors(string) [CLuster(string) reps(string) *]
 
 	if "`reps'" == "" {
-		di as text "Use the option reps() to compute correct standard errors"
+		di as text "Use the option reps() to compute correct Standard Errors"
 		innerregife `anything', factors(`factors') `options'
 	}
 	else{
 		if "`cluster'" == ""{
+
 			bootstrap, reps(`reps') : ///
-			innerregife `anything', factors(`factors') `options'
+			innerregife `anything', factors(`factors')  `options'
 		}
 		else{
 			tempvar clusterid
