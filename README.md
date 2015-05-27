@@ -19,7 +19,7 @@ regife div_rate unilateral, f(state year) d(3)
 Model with state / year fe + interactive fixed effects:
 
 ```
-regife div_rate unilateral  [w=stpop],  f(state year) a(state year) d(3)
+regife div_rate unilateral,  f(state year) a(state year) d(3)
 ```
 
 
@@ -70,7 +70,7 @@ To use the option `f`, `xb` and `resf`, you need to save the interactive fixed e
 The syntax is
 
 ```
-regife depvar [indepvars]  [if] [in], Factors(idvar timevar) Dimension(integer)  [
+regife depvar [indepvars]  [aweight pweight fweight] [if] [in], Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
 	TOLerance(real 1e-6) MAXIterations(int 10000) 
 	GENerate(newvarname)
@@ -97,7 +97,7 @@ ife div_rate unilateral, f(fs=state fy=year)  d(2)
 net install regife , from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
 
-`regife` requires the command `hdfe` if you use the option `absorb`
+If you want to use the option `absorb`, you should download the command `hdfe` 
 
 ```
 cap ado uninstall reghdfe
