@@ -203,12 +203,13 @@ mata:
 		tindex = st_varindex(time)
 		windex = st_varindex(w)
 
-		Y = st_data((first::last), y)
+		Y = st_view((first::last), y)
+		X = st_view((first::last), x)
+
 		b1 = st_matrix(bname)'
-		X = st_data((first::last), x)
 
 		if (strlen(w) > 0) {
-			W = st_data((first::last), w)
+			W = st_view((first::last), w)
 			M = invsym(cross(X, W, X)) * X'* diag(W)
 			/* define vector weight for each N (as sum of individual weight) */
 			Ws = J(N, T, .)
