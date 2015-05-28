@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ GENerate(string)TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ GENerate(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	local y `varlist'
 
@@ -125,29 +125,10 @@ mata:
 	void iterationf(string scalar y, string scalar id, string scalar time, string scalar w, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, scalar gen, string scalar verbose){
 		
 
-		real matrix Y 
 		
-		real scalar iindex
-		real scalar tindex
-		real scalar windex
-		real scalar index
-		real scalar idx
-
-		real scalar iter
-		real scalar obs
-		real scalar col
-
-		
-		real scalar error
-		real matrix U
-		real matrix V
-		real matrix Ws
-		real matrix Wm
+		real scalar iindex, tindex, windex, index, idx, iter, obs, col, error
+		real matrix Y, U, V, Ws, Wm, R1, R2, na
 		real colvector s
-		real matrix R1
-		real matrix R2
-		real matrix na
-
 		string scalar name
 
 		index = st_varindex(y)

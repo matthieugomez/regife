@@ -171,45 +171,22 @@ mata:
 
 
 	void iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, string scalar verbose){
-		real matrix Y 
-		real matrix X
-		real matrix tY
-		real matrix M
-		real matrix Ws
-		real scalar iindex
-		real scalar tindex
-		real scalar windex
 
-
-		real scalar iter
-		real scalar obs
-		real scalar col
-		real scalar idx
-
-		real scalar error
-		real matrix U
-		real matrix V
-		real matrix W
-		real matrix Ws
-		real matrix Wm
-		real colvector s
-		real matrix R
-		real colvector b1
-		real colvector b2
-
+		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm
+		real scalar iindex, tindex, windex, iter, obs, col, idx, error
 		string scalar name
+		real colvector s, b1, b2
 
 		iindex = st_varindex(id)
 		tindex = st_varindex(time)
-		windex = st_varindex(w)
 
-		Y = st_view((first::last), y)
-		X = st_view((first::last), x)
-
+		st_view(Y, (first::last), y)
+		st_view(X, (first::last), x)
 		b1 = st_matrix(bname)'
 
 		if (strlen(w) > 0) {
-			W = st_view((first::last), w)
+			windex = st_varindex(w)
+			st_view(W, (first::last), w)
 			M = invsym(cross(X, W, X)) * X'* diag(W)
 			/* define vector weight for each N (as sum of individual weight) */
 			Ws = J(N, T, .)
