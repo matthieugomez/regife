@@ -93,7 +93,7 @@ Missing combinations id x date in the dataset are considered to be missing, not 
 ife div_rate unilateral, f(fs=state fy=year)  d(2)
 ```
 
-# cce
+# cce (Pesaran 2006)
 
 The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
 
@@ -101,9 +101,9 @@ Like with year fixed effect, these commands generate the mean value of regressor
 - `ccemg` runs the new model within each group and takes the average of beta accross all groups.
 - `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies
 
-The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
+These estimates are easy to compute manually compared to Bai (2009) estimate. I included in this package for easier comparability. The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
 
-The syntax is 
+The syntax for these estimates
 
 ```
 ccemg depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
