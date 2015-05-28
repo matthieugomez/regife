@@ -58,7 +58,6 @@ program define innerregife, eclass
 		local wt [`weight'`exp']
 		local wtv = subinstr("`exp'","=","", .)
 		local wtv2 "*`wtv'"
-		display as text "Weight are used for regressions, not for the PCA"
 		local sumwt [aw`exp']
 	}
 
@@ -301,18 +300,17 @@ mata:
 			for (obs = first; obs <= last ; obs++) {    
 				R[_st_data(obs, iindex), _st_data(obs, tindex)] = tY[obs - first + 1, 1]
 			}
-			/*  if (strlen(w) > 0) {
-				R = R 
+			 if (strlen(w) > 0) {
+				R = R :* Ws
 			}
-			*/
-			/* do PCA of residual */
+						/* do PCA of residual */
 			_svd(R, s, V)
 			U = R[.,(1::d)] * diag(s[1::d]) 
-			/*  
+			  
 			if (strlen(w) > 0) {
-				U = U
+				U = U :/ Ws
 			}
-			*/
+			
 			R = U *  V[(1::d),.]
 			for (obs = first; obs <= last ; obs++) {    
 				tY[obs - first + 1,1] = R[_st_data(obs, iindex),_st_data(obs, tindex)] 
