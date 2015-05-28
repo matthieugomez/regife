@@ -101,7 +101,7 @@ Like with year fixed effect, these commands generate the mean value of regressor
 - `ccemg` runs the new model within each group and takes the average of beta accross all groups.
 - `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies
 
-These estimates are easy to compute manually compared to Bai (2009) estimate. I included in this package for easier comparability. The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
+These estimates are easy to compute manually compared to Bai (2009) estimate. I include them in this package for easier comparability. The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
 
 The syntax for these estimates
 
