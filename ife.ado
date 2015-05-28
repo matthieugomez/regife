@@ -46,7 +46,8 @@ program define ife, eclass sortpreserve
 	}
 
 	if "`generate'`id1gen'`id2gen'" == ""{
-		di as error "Save either the loading / factors (using the factors option), or the predicted observations (using the generate option)"
+		di as error "Nothing to return. Either save the loading / factors (using the factors option), or the predicted observations (using the generate option)"
+		exit 0
 	}
 
 
@@ -76,9 +77,9 @@ program define ife, eclass sortpreserve
 
 	if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
 		sort `touse' `id1' `id2'
-		cap by `touse' `id1' `id2' : assert _N == 1 if `touse'
+		cap bys `touse' `id1' `id2' : assert _N == 1 if `touse'
 		if _rc{
-			di as error "repeated observations for`id2' within id `id1'"
+			di as error "repeated observations for `id2' within `id1'"
 			exit 451
 		}
 	}
