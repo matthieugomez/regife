@@ -4,9 +4,11 @@
 ***************************************************************************************************/
 program define innerregife, eclass 
 	version 12
-	syntax varlist(min=1 numeric fv ts) [if] [in] [aweight fweight pweight iweight], /// 
-	Factors(string)  Dimension(int) ///
-	[ Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax , Dimension(int) [ /// 
+	id1(string) id2(string) id1gen(string) id2gen(string) /// 
+	y(string) x(string) xname(string) yname(string) /// 
+	touse(string)  wvar(string) wtype(string)  ///
+	Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 
 	/* tempname */
@@ -14,82 +16,11 @@ program define innerregife, eclass
 	tempname b V
 
 
-	/* syntax factors */
-	while (regexm("`factors'", "[ ][ ]+")) {
-		local factors : subinstr local factors "  " " ", all
+	if ("`wtype'"!=""){
+		local wt [`wtype'=`wvar']
+		local wvar = "`wvar'"
+		local sumwt [aw=`wvar']
 	}
-	local factors : subinstr local factors " =" "=", all
-	local factors : subinstr local factors "= " "=", all
-
-	cap assert `: word count `factors'' == 2
-	if _rc{
-		di as error "There must be exactly two variables in the option factors"
-		exit 
-	}
-
-	forv i = 1/2{	 
-		local f : word `i' of `factors'
-		if regexm("`f'", "(.+)=(.+)"){
-			local id`i'gen `=regexs(1)'
-			local id`i' = regexs(2)
-			forval d = 1/`dimension'{
-				cap confirm new variable `id`i'gen'_`d'
-				if _rc{
-					if _rc == 198{
-						di as error "variable `id`i'gen'_`d' is not a valid name"
-					}
-					else if _rc == 110{
-						di as error "variable `id`i'gen'_`d' already defined"
-					}
-					exit 198
-				}
-			}
-		}
-		else{
-			local id`i' `f'
-		}
-		confirm var `id`i''
-	}
-
-
-
-
-	if ("`weight'"!=""){
-		local wt [`weight'`exp']
-		local wtv = subinstr("`exp'","=","", .)
-		local wtv2 "*`wtv'"
-		local sumwt [aw`exp']
-	}
-
-
-
-	/* touse */
-	marksample touse
-	markout `touse' `id1' `id2' `wtv', strok
-
-
-	/*syntax varlist  */
-	fvrevar `varlist' if `touse'
-	local varlist = r(varlist)
-	foreach v in `varlist'{
-		local tvar : char `v'[tsrevar]
-		local fvar : char `v'[fvrevar]
-		if "`tvar'`fvar'" ~=""{
-			local namelist `namelist'  `tvar'`fvar'
-		}
-		else{
-			local namelist `namelist' `v'
-		}
-	}
-	tokenize `varlist'
-	local y `1'
-	macro shift 
-	local x `*'
-	tokenize `namelist'
-	local yname `1'
-	macro shift 
-	local xname `*'
-
 
 
 	/* absorb */
@@ -136,15 +67,17 @@ program define innerregife, eclass
 	qui replace `g1' = sum(`g1') if `touse'
 	local N = `g1'[_N]
 
+
 	sort `touse' `id2'
 	qui by `touse' `id2': gen long `g2' = _n == 1 if `touse'
 	qui replace `g2' = sum(`g2') if `touse'
 	local T = `g2'[_N]
 
 
+
 	cap assert `T' >= `dimension'
 	if _rc{
-		di as error "The dimension `dimension' should be lower than the number of distinct values for `id2'"
+		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
 		exit 0
 	}
 
@@ -168,7 +101,7 @@ program define innerregife, eclass
 
 
 	* iterate 
-	mata: iteration("`py'","`res'", "`pcx'", "`wtv'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`verbose'")
+	mata: iteration("`py'","`res'", "`pcx'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`verbose'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -237,7 +170,7 @@ set matastrict on
 mata:
 
 
-	void iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idgen, string scalar timegen, string scalar verbose){
+	void iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, string scalar verbose){
 		real matrix Y 
 		real matrix X
 		real matrix tY
@@ -245,14 +178,20 @@ mata:
 		real matrix Ws
 		real scalar iindex
 		real scalar tindex
+		real scalar windex
+
 
 		real scalar iter
 		real scalar obs
 		real scalar col
+		real scalar idx
 
 		real scalar error
 		real matrix U
 		real matrix V
+		real matrix W
+		real matrix Ws
+		real matrix Wm
 		real colvector s
 		real matrix R
 		real colvector b1
@@ -262,6 +201,8 @@ mata:
 
 		iindex = st_varindex(id)
 		tindex = st_varindex(time)
+		windex = st_varindex(w)
+
 		Y = st_data((first::last), y)
 		b1 = st_matrix(bname)'
 		X = st_data((first::last), x)
@@ -270,12 +211,13 @@ mata:
 			W = st_data((first::last), w)
 			M = invsym(cross(X, W, X)) * X'* diag(W)
 			/* define vector weight for each N (as sum of individual weight) */
-			Ws = J(N, T, 1)
+			Ws = J(N, T, m)
 			for (obs = first; obs <= last ; obs++) {    
 				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] = W[obs - first + 1, 1]
 			}
-			Ws= rowsum(Ws)/cols(Ws)
-			Ws =sqrt(Ws)
+			Wm = rowsum(Ws :==.)
+			Wm= rowsum(editmissing(Ws, 0)) :/ Wm
+			Wm =sqrt(Wm)
 		}
 		else{
 			M = invsym(cross(X, X)) * X'
@@ -300,15 +242,15 @@ mata:
 			for (obs = first; obs <= last ; obs++) {    
 				R[_st_data(obs, iindex), _st_data(obs, tindex)] = tY[obs - first + 1, 1]
 			}
-			 if (strlen(w) > 0) {
-				R = R :* Ws
+			if (strlen(w) > 0) {
+				R = R :* Wm
 			}
-						/* do PCA of residual */
+			/* do PCA of residual */
 			_svd(R, s, V)
 			U = R[.,(1::d)] * diag(s[1::d]) 
-			  
+
 			if (strlen(w) > 0) {
-				U = U :/ Ws
+				U = U :/ Wm
 			}
 			
 			R = U *  V[(1::d),.]
@@ -323,23 +265,23 @@ mata:
 
 		/* store factors if asked. note normalization in Bai different from svd in stata that has VV" = I rather than VV'/T = I */
 		st_store(first::last, res, tY)
-		if (strlen(idgen) > 0){
+		if (strlen(id1gen) > 0){
 			for (col = 1; col <= d; col++){
-				name =  idgen +  "_" + strofreal(col)
-				st_addvar("float", name)
+				name =  id1gen +  "_" + strofreal(col)
+				idx = st_addvar("float", name)
 				U = U :/ sqrt(T)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, 	name, U[_st_data(obs, iindex), col])
+					st_store(obs, 	idx , U[_st_data(obs, iindex), col])
 				} 
 			}
 		}
-		if (strlen(timegen) > 0){
+		if (strlen(id2gen) > 0){
 			for (col = 1; col <= d; col++){
-				name =  timegen + "_" + strofreal(col)
+				name =  id2gen + "_" + strofreal(col)
 				V = V:* sqrt(T)
-				st_addvar("float", name)
+				idx = st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, name, V[col, _st_data(obs, tindex)])
+					st_store(obs, idx , V[col, _st_data(obs, tindex)])
 				} 
 			}
 		}
