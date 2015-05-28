@@ -211,7 +211,7 @@ mata:
 			W = st_data((first::last), w)
 			M = invsym(cross(X, W, X)) * X'* diag(W)
 			/* define vector weight for each N (as sum of individual weight) */
-			Ws = J(N, T, m)
+			Ws = J(N, T, .)
 			for (obs = first; obs <= last ; obs++) {    
 				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] = W[obs - first + 1, 1]
 			}
