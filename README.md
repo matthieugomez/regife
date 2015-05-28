@@ -16,10 +16,10 @@ Model with interactive fixed effects (3 factors)
 regife div_rate unilateral, f(state year) d(3)
 ```
 
-Model with interactive fixed effects (3 factors) beyond state + year fe
+Model with interactive fixed effects (2 factors beyond state + year fe)
 
 ```
-regife div_rate unilateral,  f(state year) a(state year) d(3)
+regife div_rate unilateral,  a(state year)  f(state year) d(2)
 ```
 
 
@@ -40,17 +40,16 @@ regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
 
 ## Predict
 
-Save the interactive fixed effect using the symbol `=` in the option `ife`
+You can save the loadings and factors using the symbol `=` in the option `factors`
 
 ```
-regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year) reps(50)
+regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year) 
 ```
 
 
-After saving these fixed effects, you can generate the estimated factor using `predict`:
+After saving these fixed effects,  you can generate the estimated factor using `predict`:
 
 ```
-regife div_rate unilateral, f(fs=state fy=year)  d(2)
 predict factors, f
 ```
 - `f` returns the factor term
@@ -66,6 +65,8 @@ To use the option `f`, `xb` and `resf`, you need to save the interactive fixed e
 
 
 
+
+
 ## Syntax
 The syntax is
 
@@ -74,6 +75,7 @@ regife depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
 	Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
 	TOLerance(real 1e-6) MAXIterations(int 10000) 
+	reps(int 0) cluster(clustervars)
 	]
 ```
 

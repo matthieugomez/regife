@@ -3,7 +3,7 @@
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string)Dimension(int)   [reps(string) CLuster(string) *]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string)Dimension(int) reps(int 0)   [CLuster(string) *]
 
 
 	/* syntax factors */
@@ -80,27 +80,26 @@ program define regife, sortpreserve
 
 
 
-	if "`reps'" == "" {
+	if `reps' == 0 {
 		di as text "Use the option reps() to compute correct Standard Errors"
-	
 	innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
 
-}
-else{
-	if "`id1gen'`id2gen'" ~= ""{
-			qui innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
-	}
-	if "`cluster'" == ""{
-		bootstrap, reps(`reps') : ///
-		innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
 	}
 	else{
-		tempvar clusterid
-		tsset, clear
-		bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-		innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+		if "`id1gen'`id2gen'" ~= ""{
+				qui innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+		}
+		if "`cluster'" == ""{
+			bootstrap, reps(`reps') : ///
+			innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
+		}
+		else{
+			tempvar clusterid
+			tsset, clear
+			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
+			innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+		}
 	}
-}
 end
 
 

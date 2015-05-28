@@ -47,5 +47,8 @@ gen weight2 = mod(state, 4) + 1
 expand weight2 
 egen t = tag(state year)
 replace div_rate = 0 if missing(div_rate)
+
+
+
 regife div_rate unilateral   [pw=weight2] if t , f(state year) d(2)
 regife div_rate unilateral , f(state year) d(2)
