@@ -35,7 +35,7 @@ program define innerregife, eclass
 		tempname prefix
 		hdfe `y' `x'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
 		scalar `df_a' = r(df_a)
-		qui replace `touse' = 0 if `sample' == 0
+		local touse `sample'
 		tempvar `prefix'`y'
 		qui gen  ``prefix'`y'' = `prefix'`y' 
 		drop `prefix'`y'
@@ -54,7 +54,7 @@ program define innerregife, eclass
 		scalar `df_a' = 0
 	}
 	/* count number of observations (after hdfe since it reads the absorb syntax) */
-	sort `touse'
+	sort `touse' `id1'
 	qui count if `touse' 
 	local touse_first = _N - r(N) + 1
 	local touse_last = _N
@@ -62,7 +62,6 @@ program define innerregife, eclass
 
 
 	/* create group for i and t */
-	sort `touse' `id1'
 	qui by `touse' `id1': gen long `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
 	local N = `g1'[_N]
@@ -183,7 +182,7 @@ mata:
 		st_view(Y, (first::last), y)
 		st_view(X, (first::last), x)
 		b1 = st_matrix(bname)'
-
+	
 		if (strlen(w) > 0) {
 			windex = st_varindex(w)
 			st_view(W, (first::last), w)
@@ -193,7 +192,7 @@ mata:
 			for (obs = first; obs <= last ; obs++) {    
 				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] = W[obs - first + 1, 1]
 			}
-			Wm = rowsum(Ws :==.)
+			Wm = rowsum(Ws :!=.)
 			Wm= rowsum(editmissing(Ws, 0)) :/ Wm
 			Wm =sqrt(Wm)
 		}
@@ -205,6 +204,8 @@ mata:
 		V = J(T, T, .)
 		iter = 0
 		error = 1
+
+
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			iter = iter + 1
 			if (strlen(verbose) > 0){
@@ -217,9 +218,13 @@ mata:
 			}
 			/* construct residual matrix */
 			tY = Y :-  X * b1
+
+
+			
 			for (obs = first; obs <= last ; obs++) {    
 				R[_st_data(obs, iindex), _st_data(obs, tindex)] = tY[obs - first + 1, 1]
 			}
+	
 			if (strlen(w) > 0) {
 				R = R :* Wm
 			}

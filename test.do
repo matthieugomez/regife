@@ -3,8 +3,15 @@ keep if inrange(year, 1968, 1988)
 egen state = group(st), label
 tsset state year
 
+timer on 1
+regife div_rate unilateral divx*  , f(state year) d(2)
+timer off 1
 
-regife div_rate unilateral divx*   [w=stpop], f(state year) d(2)
+timer on 1
+regife div_rate unilateral divx*  , f(state year) d(2)
+timer off 1
+
+
 reghdfe div_rate unilateral divx* [aw=stpop], a(state year)
 regife div_rate unilateral divx* [aw=stpop], f(state year) d(2)
 regife div_rate unilateral divx* [aw=stpop], f(state year) d(2) a(state year)
@@ -38,7 +45,7 @@ regife div_rate unilateral, f(state year) a(state year) d(2)
 
 
 * ife 
-ife div_rate [aw=stpop], f(state year) d(2)
+ife div_rate [aw=stpop], f(fe1 = state year) d(2)
 
 
 

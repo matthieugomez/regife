@@ -146,7 +146,7 @@ mata:
 				Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)
 				Ws[_st_data(obs, iindex), _st_data(obs, tindex)] =  _st_data(obs, windex)
 			}
-			Wm = rowsum(Ws :==.)
+			Wm = rowsum(Ws :!=.)
 			Wm= rowsum(editmissing(Ws, 0)):/ Wm
 			Wm = sqrt(Wm)		
 		}
@@ -155,8 +155,6 @@ mata:
 				Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
 			}
 		}
-
-
 
 		na = Y :==.
 		Y = editmissing(Y, 0)

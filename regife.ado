@@ -3,8 +3,17 @@
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 0) CLuster(string) *]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 50) CLuster(string) *]
 
+
+	tokenize `varlist'
+	local y `1'
+	macro shift 
+	local x `*'
+	tokenize `namelist'
+	local yname `1'
+	macro shift 
+	local xname `*'
 
 	/* syntax factors */
 	while (regexm("`factors'", "[ ][ ]+")) {
@@ -53,8 +62,9 @@ program define regife, sortpreserve
 	/* touse */
 	marksample touse
 	markout `touse' `id1' `id2' `wvar', strok
-
-
+ 	noi	ds *
+ 	noi di "touse is "
+ 	noi di "`touse'"
 
 	/*syntax varlist  */
 	fvrevar `varlist' if `touse'
@@ -69,35 +79,28 @@ program define regife, sortpreserve
 			local namelist `namelist' `v'
 		}
 	}
-	tokenize `varlist'
-	local y `1'
-	macro shift 
-	local x `*'
-	tokenize `namelist'
-	local yname `1'
-	macro shift 
-	local xname `*'
 
 
 
-	if `reps' == 0 {
+
+	if `reps' <= 1 {
 		di as text "Use the option reps() to compute correct Standard Errors"
-	innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+	innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
 
 	}
 	else{
 		if "`id1gen'`id2gen'" ~= ""{
-				qui innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+				qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
 		}
 		if "`cluster'" == ""{
-			bootstrap, reps(`reps') : ///
-			innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
+			bootstrap, trace reps(`reps'): ///
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
 		}
 		else{
 			tempvar clusterid
 			tsset, clear
 			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-			innerregife `anything', dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
 		}
 	}
 end
