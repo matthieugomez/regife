@@ -62,9 +62,6 @@ program define regife, sortpreserve
 	/* touse */
 	marksample touse
 	markout `touse' `id1' `id2' `wvar', strok
- 	noi	ds *
- 	noi di "touse is "
- 	noi di "`touse'"
 
 	/*syntax varlist  */
 	fvrevar `varlist' if `touse'
