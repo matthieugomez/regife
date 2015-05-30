@@ -83,22 +83,22 @@ program define regife, sortpreserve
 
 	if `reps' <= 1 {
 		di as text "Use the option reps() to compute correct Standard Errors"
-	innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+	innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') tousevar(`touse') wtype(`wtype') wvar(`wvar') `options'
 
 	}
 	else{
 		if "`id1gen'`id2gen'" ~= ""{
-				qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+				qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') tousevar(`touse') wtype(`wtype') wvar(`wvar') `options'
 		}
 		if "`cluster'" == ""{
-			bootstrap,  reps(`reps'): ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
+			bootstrap,  reps(`reps') : ///
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') tousevar(`touse') wtype(`wtype') wvar(`wvar')  `options'
 		}
 		else{
 			tempvar clusterid
 			tsset, clear
-			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
+			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid') : ///
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') tousevar(`touse') wtype(`wtype') wvar(`wvar') `options'
 		}
 	}
 end

@@ -7,10 +7,9 @@ program define innerregife, eclass
 	syntax , Dimension(int) [ /// 
 	id1(string) id2(string) id1gen(string) id2gen(string) /// 
 	y(string) x(string) xname(string) yname(string) /// 
-	touse(string)  wvar(string) wtype(string)  ///
+	tousevar(string)  wvar(string) wtype(string)  ///
 	Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
-	noi ds *
 
 	/* tempname */
 	tempvar res res2 y2 g1 g2
@@ -34,9 +33,9 @@ program define innerregife, eclass
 		}
 		tempvar sample
 		tempname prefix
-		hdfe `y' `x'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
+		hdfe `y' `x'  `wt' if `tousevar', a(`absorb') gen(`prefix') sample(`sample')
 		scalar `df_a' = r(df_a)
-		local touse `sample'
+		local tousevar `sample'
 		tempvar `prefix'`y'
 		qui gen  ``prefix'`y'' = `prefix'`y' 
 		drop `prefix'`y'
@@ -55,22 +54,22 @@ program define innerregife, eclass
 		scalar `df_a' = 0
 	}
 	/* count number of observations (after hdfe since it reads the absorb syntax) */
-	sort `touse' `id1'
-	qui count if `touse' 
-	local touse_first = _N - r(N) + 1
-	local touse_last = _N
-	local obs = `touse_last'-`touse_first' + 1
+	sort `tousevar' `id1'
+	qui count if `tousevar' 
+	local tousevar_first = _N - r(N) + 1
+	local tousevar_last = _N
+	local obs = `tousevar_last'-`tousevar_first' + 1
 
 
 	/* create group for i and t */
-	qui by `touse' `id1': gen long `g1' = _n == 1 if `touse'
-	qui replace `g1' = sum(`g1') if `touse'
+	qui by `tousevar' `id1': gen long `g1' = _n == 1 if `tousevar'
+	qui replace `g1' = sum(`g1') if `tousevar'
 	local N = `g1'[_N]
 
 
-	sort `touse' `id2'
-	qui by `touse' `id2': gen long `g2' = _n == 1 if `touse'
-	qui replace `g2' = sum(`g2') if `touse'
+	sort `tousevar' `id2'
+	qui by `tousevar' `id2': gen long `g2' = _n == 1 if `tousevar'
+	qui replace `g2' = sum(`g2') if `tousevar'
 	local T = `g2'[_N]
 
 
@@ -94,14 +93,14 @@ program define innerregife, eclass
 
 	/* algorithim */
 	* first reg  
-	qui _regress `py' `pcx' `wt' if `touse', nocons
+	qui _regress `py' `pcx' `wt' if `tousevar', nocons
 	matrix `b' = e(b)
-	qui predict `res' if `touse'
+	qui predict `res' if `tousevar'
 
 
 
 	* iterate 
-	mata: iteration("`py'","`res'", "`pcx'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`verbose'")
+	mata: iteration("`py'","`res'", "`pcx'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `tousevar_first', `tousevar_last', "`id1gen'", "`id2gen'", "`verbose'")
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -109,7 +108,7 @@ program define innerregife, eclass
 
 	* last reg
 	qui gen `res2' = `py' - `res'
-	qui reg `res2' `px' `wt' if `touse', `cons' 
+	qui reg `res2' `px' `wt' if `tousevar', `cons' 
 
 	/* return results */
 	tempname df_m
@@ -139,7 +138,7 @@ program define innerregife, eclass
 		display as text "Use the maxiterations options to increase the amount of iterations"
 	}
 	tempvar esample
-	gen `esample' = `touse'
+	gen `esample' = `tousevar'
 
 	ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') 
 	ereturn scalar df_r = `df_r'
