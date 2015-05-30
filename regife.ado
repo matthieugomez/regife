@@ -6,14 +6,6 @@ program define regife, sortpreserve
 	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 50) CLuster(string) *]
 
 
-	tokenize `varlist'
-	local y `1'
-	macro shift 
-	local x `*'
-	tokenize `namelist'
-	local yname `1'
-	macro shift 
-	local xname `*'
 
 	/* syntax factors */
 	while (regexm("`factors'", "[ ][ ]+")) {
@@ -76,6 +68,15 @@ program define regife, sortpreserve
 			local namelist `namelist' `v'
 		}
 	}
+	tokenize `varlist'
+	local y `1'
+	macro shift 
+	local x `*'
+	tokenize `namelist'
+	local yname `1'
+	macro shift 
+	local xname `*'
+
 
 
 
