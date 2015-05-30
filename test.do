@@ -44,13 +44,15 @@ ife div_rate [aw=stpop], f(fe1 = state year) d(2)
 
 
 
-/* weight */
+/* rough weight example */
 gen weight2 = mod(state, 4) + 1
 expand weight2 
-egen t = tag(state year)
+bys state year: gen temp = _n
+egen gs = group(state temp)
+egen gs = group(state temp)
+egen t = temp == 1
 replace div_rate = 0 if missing(div_rate)
 
 
-
-regife div_rate unilateral   [pw=weight2] if t , f(state year) d(2)
-regife div_rate unilateral , f(state year) d(2)
+regife div_rate unilateral   [fw=weight2] if t , f(state year) d(2) reps(1) maxi(0)
+regife div_rate unilateral , f(state year) d(2) reps(1) maxi(0)
