@@ -10,6 +10,7 @@ program define innerregife, eclass
 	touse(string)  wvar(string) wtype(string)  ///
 	Absorb(string) noCONS TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
+	noi ds *
 
 	/* tempname */
 	tempvar res res2 y2 g1 g2
@@ -137,8 +138,10 @@ program define innerregife, eclass
 		display as text "The algorithm did not converge : convergence error is" in ye %4.3gc `error' in text " (tolerance" in ye %4.3gc `tolerance' in text")"
 		display as text "Use the maxiterations options to increase the amount of iterations"
 	}
+	tempvar esample
+	gen `esample' = `touse'
 
-	ereturn post `b' `V', depname(`yname') obs(`obs') esample(`touse') 
+	ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') 
 	ereturn scalar df_r = `df_r'
 	ereturn scalar df_m = `df_m'
 	ereturn scalar r2_within = `r2w'
@@ -159,7 +162,6 @@ program define innerregife, eclass
 	display as text "{lalign 26:R-squared  = }" in ye %10.3fc `r2'
 	display as text "{lalign 26:Within R-sq  = }" in ye %10.3fc `r2w'
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
-
 end
 
 /***************************************************************************************************

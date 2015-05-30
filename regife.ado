@@ -91,7 +91,7 @@ program define regife, sortpreserve
 				qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `options'
 		}
 		if "`cluster'" == ""{
-			bootstrap, trace reps(`reps'): ///
+			bootstrap,  reps(`reps'): ///
 			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
 		}
 		else{
