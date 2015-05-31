@@ -25,16 +25,17 @@ regife div_rate unilateral,  a(state year)  f(state year) d(2)
 
 
 ## Standard errors
-Correct standard errors must be obtained by boostrap : just use the option `reps`:
+
+Standard errors are the ones obtained with a regression augmented with time factors interacted with id dummy. 
 
 ```
-regife div_rate unilateral, f(state year) d(2) a(state year) reps(50)
+regife div_rate unilateral, f(state year) d(2) a(state year) reps(0)`
 ```
 
-To block bootstrap, use the option `cluster`
+You should probably estimate it by bootstrap, in this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
-regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
+regife div_rate unilateral, f(state year) d(2) a(state year) cl(state)
 ```
 
 
@@ -43,7 +44,7 @@ regife div_rate unilateral, f(state year) d(2) a(state year) reps(50) cl(state)
 You can save the loadings and factors using the symbol `=` in the option `factors`
 
 ```
-regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year) 
+regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year)  
 ```
 
 
@@ -71,11 +72,11 @@ To use the option `f`, `xb` and `resf`, you need to save the interactive fixed e
 The syntax is
 
 ```
-regife depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
+regife depvar [indepvars]  [weight] [if] [in], 
 	Factors(idvar timevar) Dimension(integer)  [
 	Absorb(string) noCONS 
-	TOLerance(real 1e-6) MAXIterations(int 10000) 
 	reps(int 0) cluster(clustervars)
+	TOLerance(real 1e-6) MAXIterations(int 10000) 
 	]
 ```
 
@@ -108,22 +109,22 @@ These estimates are easy to compute manually compared to Bai (2009) estimate. I 
 The syntax for these estimates
 
 ```
-ccemg depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
-	Factors(idvar timevar)
-ccep depvar [indepvars]  [aweight pweight fweight] [if] [in], ///
-	Factors(idvar timevar) vce(vceoption)
+ccemg depvar [indepvars]  [weight] [if] [in], Factors(idvar timevar)
+ccep depvar [indepvars]  [weight] [if] [in], Factors(idvar timevar) vce(vceoption)
 ```
 
 
 
 # Installation
 
+`regife` requires `reghdfe` and `hdfe`:
 ```
+net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
+net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
 
 If you want to use the option `absorb`, you must download the command `hdfe` 
 
 ```
-net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 ```

@@ -2,8 +2,23 @@ use data/Divorce-Wolfers-AER, clear
 keep if inrange(year, 1968, 1988)
 egen state = group(st), label
 tsset state year
+gen div_rate2 = div_rate
+replace div_rate2 = 0 if missing(div_rate2)
 
-regife div_rate unilateral   [w=stpop], f(state year) a(state year) d(2)
+timer clear
+timer on 1
+regife div_rate2 unilateral,  f(state year) d(2) 
+timer off 1
+timer list
+
+/* check fast and non fast give (i) good cons or not (ii) same result */
+regife div_rate2 unilateral,  f(state year) d(2) 
+regife div_rate2 unilateral,  f(state year) d(2)  fast
+
+regife div_rate2 unilateral,  f(state year) a(state) d(2) 
+regife div_rate2 unilateral,  f(state year) a(state) d(2)  fast
+
+
 
 
 
@@ -11,9 +26,6 @@ reghdfe div_rate unilateral [aw=stpop], a(state year)
 regife div_rate unilateral [aw=stpop], f(state year) d(2) reps(1)
 regife div_rate unilateral [aw=stpop], f(state year) d(2) a(state year) reps(1)
 regife div_rate unilateral  i.state i.year [aw=stpop], f(state year) d(2) reps(1)
-
-
-
 
 
 
@@ -36,7 +48,7 @@ drop new
 * compare different estimators
 ccemg div_rate unilateral, f(state year)
 ccep div_rate unilateral, f(state year) vce(cluster state)
-regife div_rate unilateral, f(state year) a(state year) d(2)
+regife div_rate unilateral, f(state year) a(state year) d(2) reps(1)
 
 
 * ife 

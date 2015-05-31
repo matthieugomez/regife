@@ -14,7 +14,7 @@ program define regife_p, eclass sortpreserve
 		predict `varlist' if `touse' == 1
 	}
 	else if "`option'" == "resf"{
-		_predict `varlist' if `touse' == 1
+		qui _predict `varlist' if `touse' == 1
 		replace `varlist' = `=e(depvar)' - `varlist'
 	}
 	else{
@@ -26,18 +26,18 @@ program define regife_p, eclass sortpreserve
 		tempvar resf
 		gen `resf' = 0 if `touse'
 		forv r = 1/`=e(d)'{
-			replace `resf' = `resf' + `=e(f1)'_`r' * `=e(f2)'_`r'
+			qui replace `resf' = `resf' + `=e(f1)'`r' * `=e(f2)'`r'
 		}
 		if "`option'" == "f"{
-			gen `varlist' = `resf'
+			qui gen `varlist' = `resf'
 		}
 		else if "`option'" == "res"{
-			_predict `varlist' if `touse' == 1
-			replace `varlist' =`=e(depvar)' - `resf' - `varlist'
+			qui _predict `varlist' if `touse' == 1
+			qui replace `varlist' =`=e(depvar)' - `resf' - `varlist'
 		}
 		else if "`option'" == "xbf"{
-			_predict `varlist' if `touse' == 1
-			replace `varlist' = `varlist' + `resf'
+			qui _predict `varlist' if `touse' == 1
+			qui replace `varlist' = `varlist' + `resf'
 		}
 	}
 end
