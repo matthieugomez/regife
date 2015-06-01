@@ -6,21 +6,21 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 
 ```
-use "data/Divorce-Wolfers-AER", clear
-egen state = group(st), label
-keep if inrange(year, 1968, 1988) 
+use "data/income-deregulation", clear
 ```
 
 Model with interactive fixed effects (3 factors)
 ```
-regife div_rate unilateral, f(state year) d(3)
+regife p30 intra_dummy, f(state year) d(3)
 ```
 
 Model with interactive fixed effects (2 factors beyond state + year fe)
 
 ```
-regife div_rate unilateral,  a(state year)  f(state year) d(2)
+regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 ```
+
+
 
 
 
@@ -29,13 +29,13 @@ regife div_rate unilateral,  a(state year)  f(state year) d(2)
 Standard errors are the ones obtained with a regression augmented with time factors interacted with id dummy. 
 
 ```
-regife div_rate unilateral, f(state year) d(2) a(state year) reps(0)`
+regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)`
 ```
 
 You should probably estimate it by bootstrap, in this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
-regife div_rate unilateral, f(state year) d(2) a(state year) cl(state)
+regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state)
 ```
 
 
@@ -44,7 +44,7 @@ regife div_rate unilateral, f(state year) d(2) a(state year) cl(state)
 You can save the loadings and factors using the symbol `=` in the option `factors`
 
 ```
-regife div_rate unilateral, f(fs=state fy=year) d(2) a(state year)  
+regife p30 intra_dummy, f(fs=state fy=year) d(2) a(state year)  
 ```
 
 
@@ -93,7 +93,7 @@ The command `ife` estimates a factor model for a given variable. Contrary to Sta
 Missing combinations id x date in the dataset are considered to be missing, not zero.
 
 ```
-ife div_rate unilateral, f(fs=state fy=year)  d(2)
+ife p30 intra_dummy, f(fs=state fy=year)  d(2)
 ```
 
 # cce (Pesaran 2006)
@@ -101,17 +101,18 @@ ife div_rate unilateral, f(fs=state fy=year)  d(2)
 The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
 
 Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
-- `ccemg` runs the new model within each group and takes the average of beta accross all groups.
-- `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies
+- `ccemg` runs the new model within each group and takes the average of beta accross all groups. Errors can be computed with the option `vce`
+- `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies. Errors are obtained by ttest for the betas.
 
 These estimates are easy to compute manually compared to Bai (2009) estimate. I include them in this package for easier comparability. The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
 
 The syntax for these estimates
 
 ```
-ccemg depvar [indepvars]  [weight] [if] [in], Factors(idvar timevar)
-ccep depvar [indepvars]  [weight] [if] [in], Factors(idvar timevar) vce(vceoption)
+ccemg p30 intra_dummy, f(state year)
+ccep p30 intra_dummy, f(state year) vce(cluster state)
 ```
+
 
 
 

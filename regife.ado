@@ -52,7 +52,6 @@ program define regife, sortpreserve
 	}
 
 
-
 	/* touse */
 	marksample touse
 	markout `touse' `id1' `id2' `wvar', strok
@@ -91,7 +90,6 @@ program define regife, sortpreserve
 
 	if `reps' <= 1 {
 		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `cloption'  `options'
-
 	}
 	else{
 		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options'
@@ -106,6 +104,7 @@ program define regife, sortpreserve
 			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `options'
 		}
 	}
+
 end
 
 
