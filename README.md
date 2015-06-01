@@ -26,7 +26,7 @@ regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 
 ## Standard errors
 
-Standard errors are the ones obtained with a regression augmented with time factors interacted with id dummy. 
+Standard errors returned by the commands are the ones obtained by the regression with time factors as regressors (interacted with id dummy).
 
 ```
 regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)`
@@ -35,7 +35,7 @@ regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)`
 You should probably estimate it by bootstrap, in this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
-regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state)
+regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state) reps(50)
 ```
 
 
@@ -48,7 +48,7 @@ regife p30 intra_dummy, f(fs=state fy=year) d(2) a(state year)
 ```
 
 
-After saving these fixed effects,  you can generate the estimated factor using `predict`:
+After saving them,  you can generate the estimated factor using `predict`:
 
 ```
 predict factors, f
@@ -81,7 +81,7 @@ regife depvar [indepvars]  [weight] [if] [in],
 ```
 
 
-Note on the `absorb` option: the command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (although currently `regife` does not check it is the case). The syntax for `absorb` is the same than `reghdfe`.
+The `absorb` option: the command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (in particular, it's fine to add id and year fixed effect). The syntax for `absorb` is the same than `reghdfe`.
 
 
 
