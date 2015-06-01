@@ -79,6 +79,16 @@ program define regife, sortpreserve
 	macro shift 
 	local xname `*'
 
+
+	* slight issue if `touse` is redefined by `absorbvarlist`
+	if "`wvar'" ~= ""{
+		tempvar wvar2
+		qui bys `touse' `id1': gen double `wvar2' = sum(`wvar') if `touse'
+		qui by `touse' `id1': replace `wvar2' = `wvar2'[_N]/_N if `touse'
+		local wvar = "`wvar2'"
+	}
+
+
 	if `reps' <= 1 {
 		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `cloption'  `options'
 

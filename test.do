@@ -5,11 +5,9 @@ tsset state year
 gen div_rate2 = div_rate
 replace div_rate2 = 0 if missing(div_rate2)
 
-timer clear
-timer on 1
-regife div_rate2 unilateral,  f(state year) d(2) 
-timer off 1
-timer list
+
+regife div_rate2 unilateral,  f(state year) d(2) partial
+
 
 /* check fast and non fast give (i) good cons or not (ii) same result */
 regife div_rate2 unilateral,  f(state year) d(2) 
@@ -22,10 +20,9 @@ regife div_rate2 unilateral,  f(state year) a(state) d(2)  fast
 
 
 
-reghdfe div_rate unilateral [aw=stpop], a(state year)
-regife div_rate unilateral [aw=stpop], f(state year) d(2) reps(1)
-regife div_rate unilateral [aw=stpop], f(state year) d(2) a(state year) reps(1)
-regife div_rate unilateral  i.state i.year [aw=stpop], f(state year) d(2) reps(1)
+
+regife div_rate unilateral [aw=stpop], f(state year) d(2) a(state year) 
+regife div_rate unilateral  i.state i.year [aw=stpop], f(state year) d(2) 
 
 
 
