@@ -4,10 +4,11 @@ use income-deregulation, clear
 reghdfe p20 L2.intra_dummy, a(state year)
 regife p20 L2.intra_dummy, f(state year) d(3) a(state year)
 ccemg p20 L2.intra_dummy, f(state year) 
-ccep p20 L2.intra_dummy, f(state year) a(state year)
+ccep p20 L2.intra_dummy, f(state year)
 
 
 
+regife p20 L2.intra_dummy, f(state year) d(3) a(state year) reps(10)
 
 
 hdfe div_rate2 unilateral cons [aw=stpop], a(cons state#c.year) gen(ok)

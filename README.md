@@ -124,8 +124,3 @@ net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghd
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
-
-If you want to use the option `absorb`, you must download the command `hdfe` 
-
-```
-```
