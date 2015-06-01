@@ -22,6 +22,11 @@ program define cce, eclass sortpreserve
 
 	if "`ccemg'" ~= "" & "`absorb'" ~= ""{
 		dis as error "The option absorb cannot be used for the ccemg estimate"
+		exit 0 
+	}
+	if "`ccemg'" ~= "" & "`weight'" == "fweight"{
+		dis as error "fweight cannot be used for the ccemg estimate"
+		exit 0 
 	}
 	
 
@@ -208,25 +213,26 @@ set matastrict on
 mata:
 	void meanvar(real matrix b, real matrix w, string scalar sb1, string scalar sV1, string scalar sng){
 		b1 = J(1, cols(b), .)
-		V1 =  J(1, cols(b), .)
+		V1 =  J( cols(b), cols(b), .)
 		ng = J(1, cols(b), .)
-
 		for(i=1;i<= cols(b);++i){
 			v = rowmissing(b[., i]):==0
 			bnm =  select(b[., i], v)
 			wnm = select(w, v)
 			n = sum(v)
+			wnm = wnm / sum(wnm) * n
 			ng[1,i] = n
 			if (n == 1){
 				b1[1, i] = bnm
 			}
 			else if (n > 1){
 				b1[1, i] = mean(bnm, wnm)
-				V1[1, i] = variance(bnm, wnm)/n
+				V1[i, i] = variance(bnm, wnm)/(n-1)
 			}
 		}
+		V1
 		st_matrix(sb1, editmissing(b1,0))
-		st_matrix(sV1, editmissing(diag(V1),0))
+		st_matrix(sV1, editmissing(V1,0))
 		st_matrix(sng,  ng)
 	}
 end
