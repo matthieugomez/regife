@@ -120,7 +120,7 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 
 `regife` requires `reghdfe` and `hdfe`:
 ```
-net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
+net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/updated_mata/package/)
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```

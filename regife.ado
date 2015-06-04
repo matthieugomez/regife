@@ -6,6 +6,9 @@ program define regife, sortpreserve
 	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 1) CLuster(string) *]
 
 
+	* until reghdfe 3.0 is on ssc
+	local partial partial
+
 	if "`cluster'" ~= ""{
 		local cloption cl(`cluster')
 	}

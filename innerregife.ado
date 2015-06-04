@@ -13,6 +13,12 @@ program define innerregife, eclass
 	]
 
 
+	* until reghdfe 3.0 is on ssc
+	if "`fast'" == ""{
+		local partial partial
+	}
+
+
 	/* tempname */
 	tempvar res res2 y2 g1 g2
 	tempname b V
@@ -132,10 +138,10 @@ program define innerregife, eclass
 	tempvar esample
 	gen `esample' = `touse'
 	if "`fast'" == ""{
-		/*  Errors are computed using the fact B_{Asy} has the same error distribution than the real b. beta_{ASI} can be estimated by reghdfe or by partialing dependent and regressor first. reghdfe looks simpler to me and give same result*/ 
+		/*  Errors are computed using the fact B_{Asy} has the same error distribution than the real b. beta_{ASI} can be estimated by reghdfe or by partialing dependent and regressor first. reghdfe makes it simpler to me and give same result*/ 
 
 		if "`partial'" == ""{
-			qui reghdfe `y' `x' `cons' `wt' in `touse_first'/`touse_last', a(`absorb' `id1'#c.(`tfactorlist')) `options'
+			qui reghdfe `y' `x'  `cons' `wt'  in `touse_first'/`touse_last', a( `absorb' `id1'#c.(`tfactorlist')) `options'
 			tempname df_a
 			scalar `df_a' = e(df_a) + `T' * `dimension'
 			tempname df_r
