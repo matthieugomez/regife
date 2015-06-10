@@ -310,11 +310,11 @@ mata:
 		string scalar name
 		real colvector s, b1, b2
 
-
 		index = st_data(first::last, (id,time))
 		st_view(Y, (first::last), y)
 		st_view(X, (first::last), x)
 		b1 = st_matrix(bname)'
+
 
 		if (strlen(w) > 0) {
 			windex = st_varindex(w)
@@ -334,6 +334,7 @@ mata:
 		V = J(T, T, .)
 		iter = 0
 		error = 1
+
 		while ((maxiterations == 0) | (iter < maxiterations)){
 			iter = iter + 1
 			if (strlen(verbose) > 0){
@@ -388,17 +389,18 @@ mata:
 			for (col = 1; col <= d; col++){
 				idx = st_addvar("float", name[col])
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, idx , V[col, index[obs-first+1 ,2]])
+					st_store(obs, idx , V[col, index[obs - first + 1 ,2]])
 				} 
 			}
 		}
+
 
 		if (strlen(id1gen) > 0){
 			for (col = 1; col <= d; col++){
 				name =  id1gen + strofreal(col)
 				idx = st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, 	idx , U[_index[obs -first + 1,1], col])
+					st_store(obs, idx , U[index[obs - first + 1, 1], col])
 				} 
 			}
 		}
