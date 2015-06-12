@@ -291,7 +291,7 @@ program define innerregife, eclass
 
 	if "`id2gen'"~=""{
 		forval d = 1/`dimension'{
-			gen `id2gen'`d' = `tfactor'`d'
+			gen `id2gen'`d' = `tfactor`d''
 		}
 	}
 
