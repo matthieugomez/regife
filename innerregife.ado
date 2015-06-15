@@ -1,4 +1,4 @@
-
+	
 /***************************************************************************************************
 
 ***************************************************************************************************/
@@ -14,9 +14,6 @@ program define innerregife, eclass
 
 
 	* until reghdfe 3.0 is on ssc
-	*if "`fast'" == ""{
-		*	local partial partial
-		*}
 
 
 		/* tempname */
@@ -423,6 +420,8 @@ program define innerregife, eclass
 		real scalar obs, idx
 		VAR = st_data((first::last), var)
 		VARm = J(N, T, 0)
+
+
 		for (obs = 1; obs <= last - first + 1; obs++) {  
 			VARm[|(index)[obs, .]|]= VAR[obs]
 		}
