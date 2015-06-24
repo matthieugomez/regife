@@ -9,30 +9,33 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 use "data/income-deregulation", clear
 ```
 
-Model with interactive fixed effects (3 factors)
+Model with interactive fixed effects (factor model of 3 dimension)
 ```
 regife p30 intra_dummy, f(state year) d(3)
 ```
 
-Model with interactive fixed effects (2 factors beyond state + year fe)
+Model with interactive fixed effects (state + year fe + factor model of 2 dimensions)
 
 ```
 regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 ```
 
 
+- The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009.
+- The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. This is correct as long as the fixed effects are compatible with a factor model (ie mainly id fe and/or time fe)
+
 
 
 
 ## Standard errors
 
-Standard errors returned by the commands are the ones obtained by the regression with time factors as regressors (interacted with id dummy).
+Standard errors returned by the commands are obtained by the regression with time factors as regressors (interacted with id dummy).
 
 ```
 regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)`
 ```
 
-You should probably estimate it by bootstrap, in this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
+You should estimate them by bootstrap in the case of unbalanced panel. In this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
 regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state) reps(50)
@@ -81,7 +84,6 @@ regife depvar [indepvars]  [weight] [if] [in],
 ```
 
 
-The `absorb` option: the command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. The fixed effect specified in `absorb` *must* be compatible with the interactive fixed effect model (in particular, it's fine to add id and year fixed effect). The syntax for `absorb` is the same than `reghdfe`.
 
 
 
@@ -119,8 +121,15 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 # Installation
 
 `regife` requires `reghdfe` and `hdfe`:
+
 ```
-net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/updated_mata/package/)
+net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
+```
+
+With Stata 12 or older, download the zipfiles of the repositories and run in Stata
+```
+net install hdfe, from("SomeFolderReghdfe")
+net install regife, from("SomeFolderRegife")
 ```
