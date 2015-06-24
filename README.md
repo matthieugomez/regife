@@ -21,8 +21,8 @@ regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 ```
 
 
-- The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009.
-- The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. This is correct as long as the fixed effects are compatible with a factor model (ie mainly id fe and/or time fe)
+- The command handles unbalanced panels (ie missing observation for a given id x time) by imputing observations as described in the appendix of Bai 2009.
+- The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. This is correct as long as the fixed effects are compatible with a factor model (in particular id fe and/or time fe)
 
 
 
@@ -32,7 +32,7 @@ regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 Standard errors returned by the commands are obtained by the regression with time factors as regressors (interacted with id dummy).
 
 ```
-regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)`
+regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)
 ```
 
 You should estimate them by bootstrap in the case of unbalanced panel. In this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
