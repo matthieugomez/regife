@@ -9,7 +9,7 @@ program define innerregife, eclass
 	y(string) x(string) xname(string) yname(string) /// 
 	touse(string)  wvar(string) wtype(string)  ///
 	fast ///
-	Absorb(string) TOLerance(real 1e-15) MAXIterations(int 10000) VERBose partial * ///
+	Absorb(string) TOLerance(real 1e-9) MAXIterations(int 10000) VERBose partial * ///
 	]
 
 
@@ -62,14 +62,14 @@ program define innerregife, eclass
 
 		sum `y' `wt' if `touse',  meanonly
 		tempvar `y'
-		qui gen ``prefix'`y'' = `y' - r(mean)
-		local py ``y''
+		qui gen double ``prefix'`y'' = `y' - r(mean)
+		local py ``prefix'`y''
 		foreach v in  `x'{
 			tempvar `v'
 			sum `v' `wt' if `touse',  meanonly
 			tempvar `prefix'`v'
-			qui gen ``prefix'`v'' = `v' - r(mean)
-			local px `px' ``v''
+			qui gen double ``prefix'`v'' = `v' - r(mean)
+			local px `px' ``prefix'`v''
 		}
 
 		tempvar cons
@@ -309,7 +309,6 @@ mata:
 		iter = 0
 		error = 1
 
-		tol2 = tolerance * (last - first + 1)
 		while ((maxiterations == 0) | (iter < maxiterations)){
 			iter = iter + 1
 			if (strlen(verbose) > 0){
@@ -342,9 +341,10 @@ mata:
 			}
 			/* estimate coefficient of (Y- PCA(RES)) on b */
 			b2 = M * (Y :- tY)
-			error = sqrt(quadsum((b2 :- b1):^2))
+			error = sqrt(sum((b2 :- b1):^2))/length(b1)
+			error
 			b1 = b2
-			if (error < tol2){
+			if (error < tolerance){
 				break
 			}
 		}
