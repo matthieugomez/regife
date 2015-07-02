@@ -90,7 +90,7 @@ The command `ife` estimates a factor model for a given variable. Contrary to Sta
 Missing combinations id x date in the dataset are considered to be missing, not zero.
 
 ```
-ife p30 intra_dummy, f(fs=state fy=year)  d(2)
+ife p30, f(fs=state fy=year)  d(2)
 ```
 
 # cce (Pesaran 2006)
