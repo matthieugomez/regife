@@ -111,16 +111,30 @@ Contrary to Stata usual `pca` command,
 - `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
 
 
+
+
 To generate the loadings and/or the factors, use the lhs of `=`
 ```
 ife p30, f(loading_state=state factor_year=year)  d(2)
 ```
 
-To directly generate a variable corresponding to the low rank approximation, use `gen`
+To directly generate the residual of the factor model, use `residuals`
 
 ```
-ife p30, f(state year)  gen(p30_hat)
+ife p30, f(state year) residuals(p30_res)
 ```
+
+
+
+
+
+By default, `ife` demeans the variable and estimates a factor model on it. You probably want to demean with respect to id or time before. Just use the option `absorb`
+
+```
+ife p30, a(state) f(state year)  d(2) residuals(p30_res)
+ife p30, a(state year) f(state year)  d(2) residuals(p30_res)
+```
+
 
 # Installation
 

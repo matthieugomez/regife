@@ -46,7 +46,7 @@ program define ife, eclass sortpreserve
 	if "`generate'" ~= "" {
 		confirm new variable `generate'
 	}
-	if "`generate'`residuals'" ~= "" {
+	if "`residuals'" ~= "" {
 		confirm new variable `residuals'
 	}
 
