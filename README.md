@@ -116,7 +116,7 @@ The command `ife` estimates a factor model for a given variable.
  ife p30, f(loading_state=state factor_year=year)  d(2)
  ```
 
-- By default, `ife` demeans the variable (accross the whole sample) and estimates a factor model on the residuals. If you want to estimate a `pca`, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`.
+- By default, `ife` demeans the variable (accross the whole sample) and estimates a factor model on the residuals. If you want to estimate a PCA, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`.
 
 
  ```
