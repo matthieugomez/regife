@@ -3,7 +3,7 @@
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 1) CLuster(string) *]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Absorb(string) Factors(string) Dimension(int)    [reps(int 1) CLuster(string) *]
 
 
 	* until reghdfe 3.0 is on ssc

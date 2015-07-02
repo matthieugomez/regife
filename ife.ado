@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ GENerate(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [Absorb(string) GENerate(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
 	check syntax
@@ -59,9 +59,9 @@ program define ife, eclass sortpreserve
 	}
 
 
-/***************************************************************************************************
-prepare the data
-***************************************************************************************************/
+	/***************************************************************************************************
+	prepare the data
+	***************************************************************************************************/
 
 	/* touse */
 	marksample touse
@@ -78,8 +78,23 @@ prepare the data
 
 
 	/* residual */
-	sum `varlist' `sumwt' if `touse', meanonly
-	gen `res' = `varlist' - r(mean)
+	if "`absorb'" ~= ""{
+		cap which hdfe.ado
+		if _rc {
+			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
+			exit 111
+		}
+		tempvar sample
+		tempname prefix
+		qui hdfe `varlist' `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
+		local touse `sample'
+		qui gen  `res' = `prefix'`varlist' 
+		drop `prefix'`varlist'
+	}
+	else{
+		qui sum `varlist' `sumwt'  if `touse',  meanonly
+		gen `res' = `varlist' - r(mean)
+	}
 
 
 	/* create group for i and t */
@@ -164,7 +179,6 @@ mata:
 				Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
 			}
 		}
-
 		na = Y :==.
 		Y = editmissing(Y, 0)
 		error = 1
@@ -196,12 +210,16 @@ mata:
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(error)", error)
 
+	
 		if (strlen(gen) > 0){
-			st_addvar("float", gen)
+			idx = st_addvar("float", gen)
 			for (obs = first; obs <= last ; obs++) {    
-				st_store(obs, gen, R2[_st_data(obs, iindex), _st_data(obs, tindex)])
+				st_store(obs, idx, R2[_st_data(obs, iindex), _st_data(obs, tindex)])
 			}	
 		}
+
+	
+
 		if (strlen(id1gen) > 0){
 			U = U :/ sqrt(T)
 			for (col = 1; col <= d; col++){
@@ -212,6 +230,7 @@ mata:
 				} 
 			}
 		}
+
 		if (strlen(id2gen) > 0){
 			V = V:* sqrt(T)
 			for (col = 1; col <= d; col++){

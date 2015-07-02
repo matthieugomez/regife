@@ -59,7 +59,7 @@ program define innerregife, eclass
 	}
 	else{
 		scalar `df_a' = 1
-		sum `y' `wt' if `touse',  meanonly
+		sum `y' `sumwt'  if `touse',  meanonly
 		tempvar `y'
 		qui gen double ``prefix'`y'' = `y' - r(mean)
 		local py ``prefix'`y''
