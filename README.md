@@ -120,10 +120,9 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 
 # Installation
 
-`regife` requires `reghdfe` and `hdfe`:
+`regife` requires `hdfe` if you want to impose multiple fixed effects
 
 ```
-net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```

@@ -29,8 +29,8 @@ program define innerregife, eclass
 
 	if "`fast'" == ""{
 		forval d = 1/`dimension'{
-			tempvar tfactor`d'
-			local tfactorlist `tfactorlist' `tfactor`d''
+			tempvar id1factor`d'
+			local id1factorlist `id1factorlist' `id1factor`d''
 		}
 	}
 	/* absorb */
@@ -44,7 +44,7 @@ program define innerregife, eclass
 		tempvar sample
 		tempname prefix
 		qui hdfe `y' `x'  `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
-		scalar `df_a' = r(df_a)
+		scalar `df_a' = e(df_a)
 		local touse `sample'
 		tempvar `prefix'`y'
 		qui gen  ``prefix'`y'' = `prefix'`y' 
@@ -58,8 +58,7 @@ program define innerregife, eclass
 		}
 	}
 	else{
-		scalar `df_a' = 0
-
+		scalar `df_a' = 1
 		sum `y' `wt' if `touse',  meanonly
 		tempvar `y'
 		qui gen double ``prefix'`y'' = `y' - r(mean)
@@ -127,7 +126,7 @@ program define innerregife, eclass
 
 
 	* iterate 
-	mata: info = iteration("`py'","`res'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id2gen'", "`tfactorlist'", "`verbose'")
+	mata: info = iteration("`py'","`res'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last',  "`id1factorlist'",  "`id2gen'", "`verbose'")
 	local iter = r(N)
 	tempname convergence_error
 	scalar `convergence_error' = r(convergence_error)
@@ -144,13 +143,17 @@ program define innerregife, eclass
 	tempvar esample
 	gen `esample' = `touse'
 	if "`fast'" == ""{
-		/*  Errors are computed using the fact B_{Asy} has the same error distribution than the real b. beta_{ASI} can be estimated by reghdfe or by partialing dependent and regressor first. reghdfe makes it simpler to me and give same result*/ 
+		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
+		foreach factor in `id1factorlist'{
+			local factors `factors'	i.`id2'#c.(`factor')
+		}
+		qui reg `py' `px' `factors' `wt'  if `touse', nocons `options'
 
-		qui reghdfe `y' `x' `wt'  in `touse_first'/`touse_last', a( `absorb' `id2'#c.(`tfactorlist')) `options'
-		tempname df_a
-		scalar `df_a' = e(df_a) + `T' * `dimension'
+		local nx `:word count `px''		
 		tempname df_r
-		scalar `df_r' = e(df_r) - `T' * `dimension'
+		scalar `df_r' = e(df_r) - `df_a'
+
+		display `=`df_r''
 		tempname df_m
 		scalar `df_m' = e(df_m)
 		tempname N
@@ -161,81 +164,30 @@ program define innerregife, eclass
 		scalar `F' = e(F)
 		tempname rank
 		scalar `rank' = e(rank)
-		tempname N_hdfe
-		scalar `N_hdfe' = e(N_hdfe)
-		tempname N_hdfe_extended
-		scalar `N_hdfe_extended' = e(N_hdfe_extended)
-		tempname mobility
-		scalar `mobility' = e(mobility)
-		tempname M_due_to_nested
-		scalar `M_due_to_nested' = e(M_due_to_nested)
-		tempname df_a
-		scalar `df_a' = e(df_a)
-		tempname M1
-		scalar `M1' = e(M1)
-		tempname K1
-		scalar `K1' = e(K1)
-		tempname M2
-		scalar `M2' = e(M2)
-		tempname K2
-		scalar `K2' = e(K2)
-		tempname tss
-		scalar `tss' = e(tss)
 		tempname mss
 		scalar `mss' = e(mss)
 		tempname rmse
 		scalar `rmse' = e(rmse)
-		tempname F_absorb
-		scalar `F_absorb' = e(F_absorb)
-		tempname r2_a_within
-		scalar `r2_a_within' = e(r2_a_within)
-		tempname r2_a
-		scalar `r2_a' = e(r2_a)
-		tempname r2_within
-		scalar `r2_within' = e(r2_within)
-		tempname r2
-		scalar `r2' = e(r2)
-		tempname ll_0
-		scalar `ll_0' = e(ll_0)
-		tempname ll
-		scalar `ll' = e(ll)
 		tempname b V
 		matrix `b' = e(b)
-		matrix `V' = e(V) * e(df_r) / `df_r'
+		matrix `V' = e(V)
+		matrix `b' = `b'[1..`nx', 1]
+		matrix `V' = `V'[1..`nx', 1..`nx'] * e(df_r) / `=`df_r''
 		mat colnames `b' =`xname'
 		mat colnames `V' =`xname'
 		mat rownames `V' =`xname'
+		matrix list `b' 
+		matrix list `V'
 		tempvar esample
 		gen `esample' = `touse'
-
 		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+		ereturn scalar df_r = `df_r'
 		ereturn scalar df_m = `df_m'
 		ereturn scalar N = `N'
 		ereturn scalar rss = `rss'
 		ereturn scalar F = `F'
-		ereturn scalar rank = `rank'
-		ereturn scalar N_hdfe = `N_hdfe'
-		ereturn scalar N_hdfe_extended = `N_hdfe_extended'
-		ereturn scalar mobility = `mobility' 
-		ereturn scalar M_due_to_nested = `M_due_to_nested'
-		ereturn scalar df_a = `df_a'
-		ereturn scalar M1 = `M1'
-		ereturn scalar K1 = `K1'
-		ereturn scalar M2 = `M2'
-		ereturn scalar K2 = `K2'
-		ereturn scalar tss = `tss'
 		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'
-		ereturn scalar F_absorb = `F_absorb'
-		ereturn scalar r2_a_within = `r2_a_within'
-		ereturn scalar r2_a = `r2_a'
-		ereturn scalar r2_within = `r2_within'
-		ereturn scalar r2 = `r2'
-		ereturn scalar ll_0 = `ll_0'
-		ereturn scalar ll = `ll'
-		ereturn scalar df_m = `df_m'
-		ereturn scalar df_r = `df_r'
-		ereturn local predict "regife_p"
+		ereturn scalar rmse = `rmse'		
 	}
 	else{
 		/* don't compute error, just returns estimate */
@@ -263,9 +215,9 @@ program define innerregife, eclass
 	Header
 	ereturn display
 
-	if "`id2gen'"~=""{
+	if "`id1gen'"~=""{
 		forval d = 1/`dimension'{
-			gen `id2gen'`d' = `tfactor`d''
+			gen `id1gen'`d' = `id1factor`d''
 		}
 	}
 
@@ -277,7 +229,7 @@ helper functions
 set matastrict on
 mata:
 
-	pointer iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id2gen, string scalar tfactorlist, string scalar verbose){
+	pointer iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2gen, string scalar verbose){
 
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
@@ -342,7 +294,6 @@ mata:
 			/* estimate coefficient of (Y- PCA(RES)) on b */
 			b2 = M * (Y :- tY)
 			error = sqrt(sum((b2 :- b1):^2))/length(b1)
-			error
 			b1 = b2
 			if (error < tolerance){
 				break
@@ -360,8 +311,8 @@ mata:
 		st_matrix("r(b)",b1')
 
 
-		if (strlen(tfactorlist) > 0){
-			names = tokens(tfactorlist)
+		if (strlen(id1factorlist) > 0){
+			names = tokens(id1factorlist)
 			for (col = 1; col <= d; col++){
 				idx = st_addvar("float", names[col])
 				for (obs = first; obs <= last ; obs++) { 
@@ -383,8 +334,8 @@ mata:
 
 
 
-	return(&MT, &MI, &index, &Ws)
-}
+		return(&MT, &MI, &index, &Ws)
+	}
 end
 
 /***************************************************************************************************
