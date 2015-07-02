@@ -84,12 +84,10 @@ program define ife, eclass sortpreserve
 			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
 			exit 111
 		}
-		tempvar sample
 		tempname prefix
-		qui hdfe `varlist' `wt' if `touse', a(`absorb') gen(`prefix') sample(`sample')
-		local touse `sample'
-		qui gen  `res' = `prefix'`varlist' 
-		drop `prefix'`varlist'
+		qui reghdfe `varlist' `wt' if `touse', a(`absorb') 
+		qui replace `touse' = e(sample)
+		predict `res', residuals
 	}
 	else{
 		qui sum `varlist' `sumwt'  if `touse',  meanonly
