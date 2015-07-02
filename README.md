@@ -42,7 +42,7 @@ regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state) reps(50)
 You can save the loadings and factors using the symbol `=` in the option `factors`
 
 ```
-regife p30 intra_dummy, f(fs=state fy=year) d(2) a(state year)  
+regife p30 intra_dummy, f(loading_state=state factor_year=year) d(2) a(state year)  
 ```
 
 
@@ -114,14 +114,13 @@ In particular,  this means that missing combinations id x date in the dataset ar
 
 To generate the loadings and/or the factors, use the lhs of `=`
 ```
-ife p30, f(newvarname1=state newvarname2=year)  d(2)
+ife p30, f(loading_state=state factor_year=year)  d(2)
 ```
 
-Another way is to generate the low rank approximation using `gen`
-
+To directly generate the low rank approximation, use `gen`
 
 ```
-ife p30, f(state year)  gen(newvarname)
+ife p30, f(state year)  gen(p30_hat)
 ```
 
 # Installation
