@@ -106,33 +106,31 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 # ife
 The command `ife` estimates a factor model for a given variable. 
 
-Contrary to Stata usual `pca` command, 
-- `ife` handles panel data (ie dataset where each row represents an id and a time) 
-- `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
+- Contrary to Stata usual `pca` command, 
+ - `ife` handles panel data (ie dataset where each row represents an id and a time) 
+ - `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
 
 
+- To generate the loadings and/or the factors, use the lhs of `=`
+ ```
+ ife p30, f(loading_state=state factor_year=year)  d(2)
+ ```
+
+- By default, `ife` demeans the variable (accross the whole sample) and estimates a factor model on it. If you want to estimate a `pca`, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`.
 
 
-To generate the loadings and/or the factors, use the lhs of `=`
-```
-ife p30, f(loading_state=state factor_year=year)  d(2)
-```
-
-By default, `ife` demeans the variable accross all observations and estimates a factor model on it. If you want to estimate a `pca`, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`.
-
-
-```
-ife p30, a(fe_state) d(2) residuals(p30_res)
-ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year)  d(2) 
-``
+ ```
+ ife p30, a(fe_state) d(2) residuals(p30_res)
+ ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year)  d(2) 
+ ```
 
 
 Instead of saving each part of the factor model, you can directly compute residuals using the `residuals` option
 
-```
-ife p30, f(state year) d(2) residuals(p30_res)
-ife p30, a(state year) f(state year)  d(2)  residuals(p30_res)
-```
+ ```
+ ife p30, f(state year) d(2) residuals(p30_res)
+ ife p30, a(state year) f(state year)  d(2)  residuals(p30_res)
+ ```
 
 
 
