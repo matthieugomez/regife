@@ -2,8 +2,9 @@ program define ife, eclass sortpreserve
 	version 13
 	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [ GENerate(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
-	local y `varlist'
-
+	/***************************************************************************************************
+	check syntax
+	***************************************************************************************************/
 	while (regexm("`factors'", "[ ][ ]+")) {
 		local factors : subinstr local factors "  " " ", all
 	}
@@ -15,6 +16,7 @@ program define ife, eclass sortpreserve
 		di as error "There must be exactly two variables in the option factors"
 		exit 
 	}
+
 
 	forv i = 1/2{	 
 		local f : word `i' of `factors'
@@ -50,13 +52,16 @@ program define ife, eclass sortpreserve
 		exit 0
 	}
 
-
-
 	if ("`weight'"!=""){
 		local wtype `weight'
 		local wvar  `=subinstr("`exp'","=","", .)'
+		local sumwt [aw=`wvar']
 	}
 
+
+/***************************************************************************************************
+prepare the data
+***************************************************************************************************/
 
 	/* touse */
 	marksample touse
@@ -67,14 +72,17 @@ program define ife, eclass sortpreserve
 	local obs = `touse_last'-`touse_first' + 1
 
 
-
 	/* tempname */
-	tempvar res res2 y2 g1 g2
+	tempvar res res2 y2 g1 g2 y
 	tempname b V
 
 
-	/* create group for i and t */
+	/* residual */
+	sum `varlist' `sumwt' if `touse', meanonly
+	gen `res' = `varlist' - r(mean)
 
+
+	/* create group for i and t */
 	if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
 		sort `touse' `id1' `id2'
 		cap bys `touse' `id1' `id2' : assert _N == 1 if `touse'
@@ -103,9 +111,11 @@ program define ife, eclass sortpreserve
 	}
 
 
-	tempvar res
-	gen `res' = `y'
+
+	/* mata program to find factors */
 	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`generate'", "`verbose'")
+
+	/* display results */
 	local iter = r(N)
 	tempname error
 	scalar `error' = r(error)
@@ -160,7 +170,6 @@ mata:
 		error = 1
 		iter = 0
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
-
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
 					if (iter == 100){
