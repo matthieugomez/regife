@@ -126,12 +126,15 @@ ife p30, f(state year)  gen(newvarname)
 
 # Installation
 
-`regife` requires `hdfe` if you want to impose multiple fixed effects
+If you have Stata >= 13
 
 ```
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
+(`regife` requires `hdfe` if you want to estimate models with multiple fixed effects)
+
+
 
 With Stata 12 or older, download the zipfiles of the repositories and run in Stata
 ```
