@@ -134,7 +134,7 @@ The command `ife` estimates a factor model for a given variable.
 
  ```
  ife p30, f(state year) d(2) residuals(p30_res)
- ife p30, a(state year) f(state year)  d(2)  residuals(p30_res)
+ ife p30, a(state year) f(state year) d(2) residuals(p30_res)
  ```
 
 
