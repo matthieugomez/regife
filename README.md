@@ -107,9 +107,8 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 The command `ife` estimates a factor model for a given variable. 
 
 Contrary to Stata usual `pca` command, 
-- this allows to estimate PCA on panel data (ie where each row represents an id and a time) 
-- it handles unbalanced panels in the following way: missing observations are set to zero, a factor model is estimated, missing observations are then replaced by the predicted value of the factor model, etc until convergence.
-In particular,  this means that missing combinations id x date in the dataset are not zero.
+- `ife` handles panel data (ie dataset where each row represents an id and a time) 
+- `ife` handles unbalanced panel datas: missing observations are set to zero, a factor model is estimated.  Missing observations are then replaced by the predicted value of the factor model, etc until convergence.
 
 
 To generate the loadings and/or the factors, use the lhs of `=`
