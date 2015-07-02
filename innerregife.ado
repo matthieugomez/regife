@@ -27,7 +27,7 @@ program define innerregife, eclass
 		local sumwt [aw=`wvar']
 	}
 
-	if "`fast'" == ""{
+	if "`fast'" == "" & "`partial'" == ""{
 		forval d = 1/`dimension'{
 			tempvar id1factor`d'
 			local id1factorlist `id1factorlist' `id1factor`d''
@@ -243,8 +243,6 @@ program define innerregife, eclass
 		ereturn scalar F = `F'
 		ereturn scalar mss = `mss'
 		ereturn scalar rmse = `rmse'	
-
-
 	}
 	else{
 		/* don't compute error, just returns estimate */
@@ -387,10 +385,6 @@ mata:
 				} 
 			}
 		}
-
-
-
-
 		return(&MT, &MI, &index, &Ws)
 	}
 

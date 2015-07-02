@@ -103,7 +103,6 @@ program define ife, eclass sortpreserve
 	}
 
 
-
 	tempvar res
 	gen `res' = `y'
 	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`generate'", "`verbose'")
@@ -195,9 +194,9 @@ mata:
 			}	
 		}
 		if (strlen(id1gen) > 0){
+			U = U :/ sqrt(T)
 			for (col = 1; col <= d; col++){
 				name =  id1gen + "_" + strofreal(col)
-				U = U :/ sqrt(T)
 				idx = st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
 					st_store(obs, idx, U[_st_data(obs, iindex), col])
@@ -205,10 +204,9 @@ mata:
 			}
 		}
 		if (strlen(id2gen) > 0){
+			V = V:* sqrt(T)
 			for (col = 1; col <= d; col++){
 				name =  id2gen + "_" + strofreal(col)
-				V = V:* sqrt(T)
-				st_addvar("float", name)
 				idx = st_addvar("float", name)
 				for (obs = first; obs <= last ; obs++) { 
 					st_store(obs, idx, V[col, _st_data(obs, tindex)])
