@@ -116,7 +116,7 @@ To generate the loadings and/or the factors, use the lhs of `=`
 ife p30, f(loading_state=state factor_year=year)  d(2)
 ```
 
-To directly generate the low rank approximation, use `gen`
+To directly generate a variable corresponding to the low rank approximation, use `gen`
 
 ```
 ife p30, f(state year)  gen(p30_hat)
