@@ -128,11 +128,11 @@ ife p30, f(state year) residuals(p30_res)
 
 
 
-By default, `ife` demeans the variable and estimates a factor model on it. You probably want to demean with respect to id or time before. Just use the option `absorb`
+By default, `ife` demeans the variable and estimates a factor model on it. If you want to estimate a `pca`, you probably want to demean with respect to id and/or time. To do so, use the option `absorb`.
 
 ```
 ife p30, a(state) f(state year)  d(2) residuals(p30_res)
-ife p30, a(state year) f(state year)  d(2) residuals(p30_res)
+ife p30, a(fe_loading = state fe_factor = year) f(loading = state factor = year)  d(2) 
 ```
 
 
