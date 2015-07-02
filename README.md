@@ -134,22 +134,6 @@ The command `ife` estimates a factor model for a given variable.
 
 
 
-
-
-
-
-
-ife p30, a(state) f(state year)  d(2) residuals(p30_res)
-ife p30, a(state year) f(state year)  d(2) residuals(p30_res)
-```
-
-Instead of computing the residuals, you can save all objects using the `=` syntax 
-
-```
-ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year)  d(2) 
-```
-
-
 # Installation
 
 If you have Stata >= 13
