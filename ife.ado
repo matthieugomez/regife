@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [Absorb(string) GENerate(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [Absorb(string) GENerate(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
 	check syntax
@@ -46,9 +46,12 @@ program define ife, eclass sortpreserve
 	if "`generate'" ~= "" {
 		confirm new variable `generate'
 	}
+	if "`generate'`residuals'" ~= "" {
+		confirm new variable `residuals'
+	}
 
-	if "`generate'`id1gen'`id2gen'" == ""{
-		di as error "Nothing to return. Either save the loading / factors (using the factors option), or the predicted observations (using the generate option)"
+	if "`generate'`residuals'`id1gen'`id2gen'" == ""{
+		di as error "Nothing to return. Either save the loading / factors (using the factors option), or the predicted observations (using the generate option) or the residuals (using the residuals option)"
 		exit 0
 	}
 
@@ -79,15 +82,19 @@ program define ife, eclass sortpreserve
 
 	/* residual */
 	if "`absorb'" ~= ""{
-		cap which hdfe.ado
+		cap which reghdfe.ado
 		if _rc {
-			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
+			di as error "reghdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
 			exit 111
 		}
-		tempname prefix
-		qui reghdfe `varlist' `wt' if `touse', a(`absorb') 
+		if "`residuals'" ~= ""{
+			qui reghdfe `varlist' `wt' if `touse', a(`absorb') residuals(`res')
+		}
+		else{
+			qui reghdfe `varlist' `wt' if `touse', a(`absorb') 
+			predict `res', residuals
+		}
 		qui replace `touse' = e(sample)
-		predict `res', residuals
 	}
 	else{
 		qui sum `varlist' `sumwt'  if `touse',  meanonly
@@ -126,7 +133,7 @@ program define ife, eclass sortpreserve
 
 
 	/* mata program to find factors */
-	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`generate'", "`verbose'")
+	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`generate'", "`residuals'", "`verbose'")
 
 	/* display results */
 	local iter = r(N)
@@ -145,7 +152,7 @@ mata helper
 set matastrict on
 mata:
 
-	void iterationf(string scalar y, string scalar id, string scalar time, string scalar w, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, scalar gen, string scalar verbose){
+	void iterationf(string scalar y, string scalar id, string scalar time, string scalar w, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, string scalar gen, string scalar residuals, string scalar verbose){
 		
 
 		
@@ -208,7 +215,7 @@ mata:
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(error)", error)
 
-	
+
 		if (strlen(gen) > 0){
 			idx = st_addvar("float", gen)
 			for (obs = first; obs <= last ; obs++) {    
@@ -216,7 +223,13 @@ mata:
 			}	
 		}
 
-	
+		if (strlen(residuals) > 0){
+			idx = st_addvar("float", residuals)
+			for (obs = first; obs <= last ; obs++) {    
+				st_store(obs, idx, Y[_st_data(obs, iindex), _st_data(obs, tindex)] - R2[_st_data(obs, iindex), _st_data(obs, tindex)])
+			}	
+		}
+
 
 		if (strlen(id1gen) > 0){
 			U = U :/ sqrt(T)
