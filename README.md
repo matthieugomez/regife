@@ -132,8 +132,10 @@ By default, `ife` demeans the variable and estimates a factor model on it. If yo
 
 ```
 ife p30, a(state) f(state year)  d(2) residuals(p30_res)
-ife p30, a(fe_loading = state fe_factor = year) f(loading = state factor = year)  d(2) 
+ife p30, a(state year) f(state year)  d(2) residuals(p30_res)
 ```
+
+
 
 
 # Installation
