@@ -142,17 +142,25 @@ program define innerregife, eclass
 
 	tempvar esample
 	gen `esample' = `touse'
-	if "`fast'" == ""{
+	if "`fast'" == "" & "`partial'" == ""{
 		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
 		foreach factor in `id1factorlist'{
 			local factors `factors'	i.`id2'#c.(`factor')
 		}
+
+		foreach var in `py' `px' {
+			tempvar new`var'
+			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
+			local newlist  `newlist' `new`var''
+		}
+
+
+
 		qui reg `py' `px' `factors' `wt'  if `touse', nocons `options'
 
 		local nx `:word count `px''		
 		tempname df_r
 		scalar `df_r' = e(df_r) - `df_a'
-
 		display `=`df_r''
 		tempname df_m
 		scalar `df_m' = e(df_m)
@@ -187,7 +195,56 @@ program define innerregife, eclass
 		ereturn scalar rss = `rss'
 		ereturn scalar F = `F'
 		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'		
+		ereturn scalar rmse = `rmse'	
+	}
+	else if "`fast'" == "" & "`partial'" ~= ""{
+		local newlist
+		foreach var in `py' `px' {
+			tempvar new`var'
+			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
+			local newlist  `newlist' `new`var''
+		}
+		qui reg `newlist' `wt' in `touse_first'/`touse_last', nocons `options'
+
+		local nx `:word count `px''		
+		tempname df_r
+		scalar `df_r' = e(df_r) - `df_a' -  (`N'+`T')*`dimension'
+		display `=`df_r''
+		tempname df_m
+		scalar `df_m' = e(df_m)
+		tempname N
+		scalar `N' = e(N)
+		tempname rss
+		scalar `rss' = e(rss)
+		tempname F
+		scalar `F' = e(F)
+		tempname rank
+		scalar `rank' = e(rank)
+		tempname mss
+		scalar `mss' = e(mss)
+		tempname rmse
+		scalar `rmse' = e(rmse)
+		tempname b V
+		matrix `b' = e(b)
+		matrix `V' = e(V)
+		matrix `V' = `V'* e(df_r) / `=`df_r''
+		mat colnames `b' =`xname'
+		mat colnames `V' =`xname'
+		mat rownames `V' =`xname'
+		matrix list `b' 
+		matrix list `V'
+		tempvar esample
+		gen `esample' = `touse'
+		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+		ereturn scalar df_r = `df_r'
+		ereturn scalar df_m = `df_m'
+		ereturn scalar N = `N'
+		ereturn scalar rss = `rss'
+		ereturn scalar F = `F'
+		ereturn scalar mss = `mss'
+		ereturn scalar rmse = `rmse'	
+
+
 	}
 	else{
 		/* don't compute error, just returns estimate */
@@ -336,6 +393,31 @@ mata:
 
 		return(&MT, &MI, &index, &Ws)
 	}
+
+
+
+	void transform(real matrix MT, real matrix MI, real matrix index, real matrix Ws, string scalar w, string scalar var, string scalar newvar, real scalar N, real scalar T, real scalar first, real scalar last){
+		real matrix VARm
+		real vector VAR
+		real scalar obs, idx
+		VAR = st_data((first::last), var)
+		VARm = J(N, T, 0)
+		for (obs = 1; obs <= last - first + 1; obs++) {  
+			VARm[|(index)[obs, .]|]= VAR[obs]
+		}
+		if (strlen(w) > 0) {
+			VARm =  ((MI * (VARm :* Ws) )* MT) :/Ws
+		}
+		else{
+			VARm =  MI * VARm * MT 
+		}
+		for (obs = 1; obs <= last - first + 1; obs++) {  
+			VAR[obs] = VARm[|index[obs, .]|]
+		}
+		idx = st_addvar("double", newvar)
+		st_store(first::last, idx , VAR)
+	}
+
 end
 
 /***************************************************************************************************

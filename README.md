@@ -11,13 +11,13 @@ use "data/income-deregulation", clear
 
 Model with interactive fixed effects (factor model of 3 dimension)
 ```
-regife p30 intra_dummy, f(state year) d(3)
+regife p30 intra_dummy, f(state year) d(3) reps(100)
 ```
 
 Model with interactive fixed effects (state + year fe + factor model of 2 dimensions)
 
 ```
-regife p30 intra_dummy,  a(state year)  f(state year) d(2)
+regife p30 intra_dummy,  a(state year)  f(state year) reps(100)
 ```
 
 
@@ -29,13 +29,8 @@ regife p30 intra_dummy,  a(state year)  f(state year) d(2)
 
 ## Standard errors
 
-Standard errors returned by the commands are obtained by the regression with time factors as regressors (interacted with id dummy).
 
-```
-regife p30 intra_dummy, f(state year) d(2) a(state year) reps(0)
-```
-
-You should estimate them by bootstrap in the case of unbalanced panel. In this case you can directly specify the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
+You should estimate standard errors by bootstrap, by specifying the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
 regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state) reps(50)
