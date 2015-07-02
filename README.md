@@ -108,7 +108,7 @@ The command `ife` estimates a factor model for a given variable.
 
 Contrary to Stata usual `pca` command, 
 - `ife` handles panel data (ie dataset where each row represents an id and a time) 
-- `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence.
+- `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
 
 
 To generate the loadings and/or the factors, use the lhs of `=`
