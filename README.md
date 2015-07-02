@@ -82,20 +82,6 @@ regife depvar [indepvars]  [weight] [if] [in],
 
 
 
-# ife
-The command `ife` estimates a factor model for a given variable. Contrary to Stata usual `pca` command, 
-- this allows to estimate PCA on a dataset in a long form (in particular panel data)
-- it handles unbalanced panels using an algorithm akin to Stock and Watson (1998). 
-
-Missing combinations id x date in the dataset are considered to be missing, not zero.
-
-
-In this example, `fs` generates 
-```
-ife p30, f(fs=state fy=year)  d(2)
-```
-
-
 
 # cce (Pesaran 2006)
 
@@ -116,6 +102,27 @@ ccep p30 intra_dummy, f(state year) vce(cluster state)
 
 
 
+
+# ife
+The command `ife` estimates a factor model for a given variable. 
+
+Contrary to Stata usual `pca` command, 
+- this allows to estimate PCA on a dataset in a long form (in particular panel data)
+- it handles unbalanced panels in the following way: missing observations are set to zero, a factor model is estimated, missing observations are then replaced by the predicted value of the factor model, etc until convergence.
+In particular,  this means that missing combinations id x date in the dataset are not zero.
+
+
+To generate the loadings and/or the factors, use the lhs of `=`
+```
+ife p30, f(newvarname1=state newvarname2=year)  d(2)
+```
+
+Another way is to generate the low rank approximation using `gen`
+
+
+```
+ife p30, f(state year)  gen(newvarname)
+```
 
 # Installation
 
