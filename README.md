@@ -118,7 +118,7 @@ To generate the loadings and/or the factors, use the lhs of `=`
 ife p30, f(loading_state=state factor_year=year)  d(2)
 ```
 
-To directly generate the residual of the factor model, use `residuals`
+To generate the residual of the factor model, use `residuals`
 
 ```
 ife p30, f(state year) residuals(p30_res)
@@ -128,7 +128,7 @@ ife p30, f(state year) residuals(p30_res)
 
 
 
-By default, `ife` demeans the variable and estimates a factor model on it. If you want to estimate a `pca`, you probably want to demean with respect to id and/or time. To do so, use the option `absorb`.
+By default, `ife` demeans the variable accross all observations and estimates a factor model on it. If you want to estimate a `pca`, you probably want to demean with respect to id and/or time. To do so, use the option `absorb`.
 
 ```
 ife p30, a(state) f(state year)  d(2) residuals(p30_res)
