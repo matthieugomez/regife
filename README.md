@@ -130,7 +130,7 @@ The command `ife` estimates a factor model for a given variable.
  gen predict = p30 - (fe_state + fe_year + factors_1 * loading_1 + factors_2 * loading_2)
  ```
 
-- Instead of saving each part of the factor model, you can directly obtain residuals using the `residuals` option
+- Instead of saving each part of the factor model, obtain directly the residuals using the `residuals` option
 
  ```
  ife p30, f(state year) d(2) residuals(p30_res)
