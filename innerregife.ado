@@ -17,7 +17,7 @@ program define innerregife, eclass
 
 
 	/* tempname */
-	tempvar res res2 y2 g1 g2
+	tempvar g1 g2
 	tempname b V
 
 
@@ -64,229 +64,226 @@ program define innerregife, eclass
 		qui gen double `py' = `y' - r(mean)
 		tempname prefix
 		foreach v in  `x'{
-			sum `v' `sumwt' if `touse',  meanonly
-			tempvar `prefix'`v'
-			qui gen double ``prefix'`v'' = `v' - r(mean)
-			local px `px' ``prefix'`v''
+				sum `v' `sumwt' if `touse',  meanonly
+				tempvar `prefix'`v'
+				qui gen double ``prefix'`v'' = `v' - r(mean)
+				local px `px' ``prefix'`v''
+			}
+		
 		}
-	}
-	/* count number of observations (after hdfe since it reads the absorb syntax) */
+		/* count number of observations (after hdfe since it reads the absorb syntax) */
 
-	if "`fast'" == ""{
-		if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
-			sort `touse' `id1' `id2'
-			cap bys `touse' `id1' `id2' : assert _N == 1 if `touse'
-			if _rc{
-				di as error "repeated observations for `id2' within `id1'"
-				exit 451
+		if "`fast'" == ""{
+			if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
+				sort `touse' `id1' `id2'
+				cap bys `touse' `id1' `id2' : assert _N == 1 if `touse'
+				if _rc{
+					di as error "repeated observations for `id2' within `id1'"
+					exit 451
+				}
 			}
 		}
-	}
 
 
-	sort `touse' `id1'
-	qui count if `touse' 
-	local touse_first = _N - r(N) + 1
-	local touse_last = _N
-	local obs = `touse_last'-`touse_first' + 1
+		sort `touse' `id1'
+		qui count if `touse' 
+		local touse_first = _N - r(N) + 1
+		local touse_last = _N
+		local obs = `touse_last'-`touse_first' + 1
 
 
-	/* create group for i and t */
-	qui by `touse' `id1': gen long `g1' = _n == 1 if `touse'
-	qui replace `g1' = sum(`g1') if `touse'
-	local N = `g1'[_N]
+		/* create group for i and t */
+		qui by `touse' `id1': gen long `g1' = _n == 1 if `touse'
+		qui replace `g1' = sum(`g1') if `touse'
+		local N = `g1'[_N]
 
-	sort `touse' `id2'
-	qui by `touse' `id2': gen long `g2' = _n == 1 if `touse'
-	qui replace `g2' = sum(`g2') if `touse'
-	local T = `g2'[_N]
-
-
-
-	cap assert `T' >= `dimension'
-	if _rc{
-		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
-		exit 0
-	}
-
-
-	cap assert `N' >= `T'
-	if _rc{
-		di as error "The first factor should have higher cardinality than the second factor"
-		exit 0
-	}
+		sort `touse' `id2'
+		qui by `touse' `id2': gen long `g2' = _n == 1 if `touse'
+		qui replace `g2' = sum(`g2') if `touse'
+		local T = `g2'[_N]
 
 
 
-	/* algorithim */
-	* first reg  
-	qui _regress `py' `px' `wt' in `touse_first'/`touse_last', nocons
-	*qui ccemg `py' `pcx' `wt' if `touse', f(`id1' `id2')
-	matrix `b' = e(b)
-	qui predict `res' in `touse_first'/`touse_last'
-
-
-
-	* iterate 
-	mata: info = iteration("`py'","`res'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last',  "`id1factorlist'",  "`id2gen'", "`verbose'")
-	local iter = r(N)
-	tempname convergence_error
-	scalar `convergence_error' = r(convergence_error)
-	tempname b
-	matrix `b' = r(b)
-
-
-
-	if `iter' == `maxiterations'{
-		display as text "The algorithm did not converge : convergence error is" in ye %4.3gc `convergence_error' in text " (tolerance" in ye %4.3gc `tolerance' in text")"
-		display as text "Use the maxiterations options to increase the amount of iterations"
-	}
-
-	tempvar esample
-	gen `esample' = `touse'
-	if "`fast'" == "" & "`partial'" == ""{
-		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
-		foreach factor in `id1factorlist'{
-			local factors `factors'	i.`id2'#c.(`factor')
+		cap assert `T' >= `dimension'
+		if _rc{
+			di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
+			exit 0
 		}
 
-		foreach var in `py' `px' {
-			tempvar new`var'
-			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
-			local newlist  `newlist' `new`var''
+
+		cap assert `N' >= `T'
+		if _rc{
+			di as error "The first factor should have higher cardinality than the second factor"
+			exit 0
 		}
 
 
 
-		qui reg `py' `px' `factors' `wt'  if `touse', nocons `options'
-
-		local nx `:word count `px''		
-		tempname df_r
-		scalar `df_r' = e(df_r) - `df_a'
-		display `=`df_r''
-		tempname df_m
-		scalar `df_m' = e(df_m)
-		tempname N
-		scalar `N' = e(N)
-		tempname rss
-		scalar `rss' = e(rss)
-		tempname F
-		scalar `F' = e(F)
-		tempname rank
-		scalar `rank' = e(rank)
-		tempname mss
-		scalar `mss' = e(mss)
-		tempname rmse
-		scalar `rmse' = e(rmse)
-		tempname b V
+		/* algorithim */
+		* first reg  
+		qui _regress `py' `px' `wt' in `touse_first'/`touse_last', nocons
+		*qui ccemg `py' `pcx' `wt' if `touse', f(`id1' `id2')
 		matrix `b' = e(b)
-		matrix `V' = e(V)
-		matrix `b' = `b'[1, 1..`nx']
-		matrix `V' = `V'[1..`nx', 1..`nx'] * e(df_r) / `=`df_r''
-		mat colnames `b' =`xname'
-		mat colnames `V' =`xname'
-		mat rownames `V' =`xname'
-		matrix list `b' 
-		matrix list `V'
+
+
+
+		* iterate 
+		mata: info = iteration("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last',  "`id1factorlist'",  "`id2gen'", "`verbose'")
+		local iter = r(N)
+		tempname convergence_error
+		scalar `convergence_error' = r(convergence_error)
+		tempname b
+		matrix `b' = r(b)
+
+
+
+		if `iter' == `maxiterations'{
+			display as text "The algorithm did not converge : convergence error is" in ye %4.3gc `convergence_error' in text " (tolerance" in ye %4.3gc `tolerance' in text")"
+			display as text "Use the maxiterations options to increase the amount of iterations"
+		}
+
 		tempvar esample
 		gen `esample' = `touse'
-		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
-		ereturn scalar df_r = `df_r'
-		ereturn scalar df_m = `df_m'
-		ereturn scalar N = `N'
-		ereturn scalar rss = `rss'
-		ereturn scalar F = `F'
-		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'	
-	}
-	else if "`fast'" == "" & "`partial'" ~= ""{
-		local newlist
-		foreach var in `py' `px' {
-			tempvar new`var'
-			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
-			local newlist  `newlist' `new`var''
+		if "`fast'" == "" & "`partial'" == ""{
+			/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
+			foreach factor in `id1factorlist'{
+				local factors `factors'	i.`id2'#c.(`factor')
+			}
+
+			foreach var in `py' `px' {
+				tempvar new`var'
+				mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
+				local newlist  `newlist' `new`var''
+			}
+
+
+
+			qui reg `py' `px' `factors' `wt'  if `touse', nocons `options'
+
+			local nx `:word count `px''		
+			tempname df_r
+			scalar `df_r' = e(df_r) - `df_a'
+			display `=`df_r''
+			tempname df_m
+			scalar `df_m' = e(df_m)
+			tempname N
+			scalar `N' = e(N)
+			tempname rss
+			scalar `rss' = e(rss)
+			tempname F
+			scalar `F' = e(F)
+			tempname rank
+			scalar `rank' = e(rank)
+			tempname mss
+			scalar `mss' = e(mss)
+			tempname rmse
+			scalar `rmse' = e(rmse)
+			tempname b V
+			matrix `b' = e(b)
+			matrix `V' = e(V)
+			matrix `b' = `b'[1, 1..`nx']
+			matrix `V' = `V'[1..`nx', 1..`nx'] * e(df_r) / `=`df_r''
+			mat colnames `b' =`xname'
+			mat colnames `V' =`xname'
+			mat rownames `V' =`xname'
+			tempvar esample
+			gen `esample' = `touse'
+			ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+			ereturn scalar df_r = `df_r'
+			ereturn scalar df_m = `df_m'
+			ereturn scalar N = `N'
+			ereturn scalar rss = `rss'
+			ereturn scalar F = `F'
+			ereturn scalar mss = `mss'
+			ereturn scalar rmse = `rmse'	
 		}
-		qui reg `newlist' `wt' in `touse_first'/`touse_last', nocons `options'
+		else if "`fast'" == "" & "`partial'" ~= ""{
+			local newlist
+			foreach var in `py' `px' {
+				tempvar new`var'
+				mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
+				local newlist  `newlist' `new`var''
+			}
+			qui reg `newlist' `wt' in `touse_first'/`touse_last', nocons `options'
 
-		local nx `:word count `px''		
-		tempname df_r
-		scalar `df_r' = e(df_r) - `df_a' -  (`N'+`T')*`dimension'
-		display `=`df_r''
-		tempname df_m
-		scalar `df_m' = e(df_m)
-		tempname N
-		scalar `N' = e(N)
-		tempname rss
-		scalar `rss' = e(rss)
-		tempname F
-		scalar `F' = e(F)
-		tempname rank
-		scalar `rank' = e(rank)
-		tempname mss
-		scalar `mss' = e(mss)
-		tempname rmse
-		scalar `rmse' = e(rmse)
-		tempname b V
-		matrix `b' = e(b)
-		matrix `V' = e(V)
-		matrix `V' = `V'* e(df_r) / `=`df_r''
-		mat colnames `b' =`xname'
-		mat colnames `V' =`xname'
-		mat rownames `V' =`xname'
-		matrix list `b' 
-		matrix list `V'
-		tempvar esample
-		gen `esample' = `touse'
-		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
-		ereturn scalar df_r = `df_r'
-		ereturn scalar df_m = `df_m'
-		ereturn scalar N = `N'
-		ereturn scalar rss = `rss'
-		ereturn scalar F = `F'
-		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'	
-	}
-	else{
-		/* don't compute error, just returns estimate */
-		tempname V
-		local  p `: word count `xname''
-		matrix `V' = J(`p', `p', 0)
-		mat colnames `b' =`xname' 
-		mat colnames `V' =`xname'
-		mat rownames `V' =`xname'
-		tempname df_r
-		scalar `df_r' = `obs' - `p'
-		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
-	}
-	ereturn scalar iter = `iter'
-	ereturn scalar convergence_error = `convergence_error'
-	ereturn local id1 `id1'
-	ereturn local id2 `id2'
-	ereturn local f1 `id1gen'
-	ereturn local f2 `id2gen'
-	ereturn local d `dimension'
-	ereturn local title REGIFE  
-	ereturn local title2 Panel structure: `id1', `id2'
-	ereturn local title3 Factor dimension: `dimension' 
-
-	Header
-	ereturn display
-
-	if "`id1gen'"~=""{
-		forval d = 1/`dimension'{
-			gen `id1gen'`d' = `id1factor`d''
+			local nx `:word count `px''		
+			tempname df_r
+			scalar `df_r' = e(df_r) - `df_a' -  (`N'+`T')*`dimension'
+			tempname df_m
+			scalar `df_m' = e(df_m)
+			tempname N
+			scalar `N' = e(N)
+			tempname rss
+			scalar `rss' = e(rss)
+			tempname F
+			scalar `F' = e(F)
+			tempname rank
+			scalar `rank' = e(rank)
+			tempname mss
+			scalar `mss' = e(mss)
+			tempname rmse
+			scalar `rmse' = e(rmse)
+			tempname b V
+			matrix `b' = e(b)
+			matrix `V' = e(V)
+			matrix `V' = `V'* e(df_r) / `=`df_r''
+			mat colnames `b' =`xname'
+			mat colnames `V' =`xname'
+			mat rownames `V' =`xname'
+			matrix list `b' 
+			matrix list `V'
+			tempvar esample
+			gen `esample' = `touse'
+			ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+			ereturn scalar df_r = `df_r'
+			ereturn scalar df_m = `df_m'
+			ereturn scalar N = `N'
+			ereturn scalar rss = `rss'
+			ereturn scalar F = `F'
+			ereturn scalar mss = `mss'
+			ereturn scalar rmse = `rmse'	
 		}
-	}
+		else{
+			/* don't compute error, just returns estimate */
+			tempname V
+			local  p `: word count `xname''
+			matrix `V' = J(`p', `p', 0)
+			mat colnames `b' =`xname' 
+			mat colnames `V' =`xname'
+			mat rownames `V' =`xname'
+			tempname df_r
+			scalar `df_r' = `obs' - `p'
+			ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+		}
+		ereturn scalar iter = `iter'
+		ereturn scalar convergence_error = `convergence_error'
+		ereturn local id1 `id1'
+		ereturn local id2 `id2'
+		ereturn local f1 `id1gen'
+		ereturn local f2 `id2gen'
+		ereturn local d `dimension'
+		ereturn local title REGIFE  
+		ereturn local title2 Panel structure: `id1', `id2'
+		ereturn local title3 Factor dimension: `dimension' 
 
-end
+		Header
+		ereturn display
 
-/***************************************************************************************************
-helper functions
-***************************************************************************************************/
-set matastrict on
-mata:
+		if "`id1gen'"~=""{
+			forval d = 1/`dimension'{
+				gen `id1gen'`d' = `id1factor`d''
+			}
+		}
 
-	pointer iteration(string scalar y, string scalar res, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2gen, string scalar verbose){
+	end
+
+	/***************************************************************************************************
+	helper functions
+	***************************************************************************************************/
+	set matastrict on
+	mata:
+
+	pointer iteration(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2gen, string scalar verbose){
 
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
@@ -362,7 +359,6 @@ mata:
 		MT = I(T) :- cross(V, V) / T
 		MI = I(N) :- cross((U :* Ws)', (U:* Ws)') / (N*sum(Ws))
 
-		st_store(first::last, res, tY)
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')
