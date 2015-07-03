@@ -60,20 +60,15 @@ program define innerregife, eclass
 	else{
 		scalar `df_a' = 1
 		sum `y' `sumwt'  if `touse',  meanonly
-		tempvar `y'
-		qui gen double ``prefix'`y'' = `y' - r(mean)
-		local py ``prefix'`y''
+		tempvar py
+		qui gen double `py' = `y' - r(mean)
+		tempname prefix
 		foreach v in  `x'{
-			tempvar `v'
-			sum `v' `wt' if `touse',  meanonly
+			sum `v' `sumwt' if `touse',  meanonly
 			tempvar `prefix'`v'
 			qui gen double ``prefix'`v'' = `v' - r(mean)
 			local px `px' ``prefix'`v''
 		}
-
-		tempvar cons
-		qui gen `cons' = 1
-		local absorb `cons'
 	}
 	/* count number of observations (after hdfe since it reads the absorb syntax) */
 
@@ -111,6 +106,13 @@ program define innerregife, eclass
 	cap assert `T' >= `dimension'
 	if _rc{
 		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
+		exit 0
+	}
+
+
+	cap assert `N' >= `T'
+	if _rc{
+		di as error "The first factor should have higher cardinality than the second factor"
 		exit 0
 	}
 
