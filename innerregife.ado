@@ -163,7 +163,6 @@ program define innerregife, eclass
 			local nx `:word count `px''		
 			tempname df_r
 			scalar `df_r' = e(df_r) - `df_a'
-			display `=`df_r''
 			tempname df_m
 			scalar `df_m' = e(df_m)
 			tempname N
