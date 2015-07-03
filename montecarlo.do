@@ -1,5 +1,5 @@
 /***************************************************************************************************
-
+This simulation reproduces Table 1 in Bai (2009), adding the case of unbalanced sample
 ***************************************************************************************************/
 tempfile filename
 tempname postname
@@ -50,6 +50,8 @@ forval i = 1/100{
 
 	regife Y X1 X2 x w if mod(_n, 3) != 0, f(N T) d(2)  fast 
 	post `postname' (`N') (`T') (`i') ("unbalanced") (_b[X1]) (_b[X2]) (_b[x]) (_b[w])
+
+	display `i'
 
 }
 postclose `postname'
