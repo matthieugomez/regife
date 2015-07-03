@@ -48,7 +48,7 @@ forval i = 1/100{
 	regife Y X1 X2 x w, f(N T) d(2)  fast 
 	post `postname' (`N') (`T') (`i') ("balanced") (_b[X1]) (_b[X2]) (_b[x]) (_b[w])
 
-	regife Y X1 X2 x w if mod(_n, 3) != 0, f(N T) d(2)  fast tolerange(1e-9) 
+	regife Y X1 X2 x w if mod(_n, 3) != 0, f(N T) d(2)  fast 
 	post `postname' (`N') (`T') (`i') ("unbalanced") (_b[X1]) (_b[X2]) (_b[x]) (_b[w])
 
 }
