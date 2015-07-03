@@ -179,7 +179,7 @@ program define innerregife, eclass
 		tempname b V
 		matrix `b' = e(b)
 		matrix `V' = e(V)
-		matrix `b' = `b'[1..`nx', 1]
+		matrix `b' = `b'[1, 1..`nx']
 		matrix `V' = `V'[1..`nx', 1..`nx'] * e(df_r) / `=`df_r''
 		mat colnames `b' =`xname'
 		mat colnames `V' =`xname'
