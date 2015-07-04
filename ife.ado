@@ -69,11 +69,6 @@ program define ife, eclass sortpreserve
 	/* touse */
 	marksample touse
 	markout `touse' `id1' `id2' `wvar', strok
-	qui count if `touse' 
-	local touse_first = _N - r(N) + 1
-	local touse_last = _N
-	local obs = `touse_last'-`touse_first' + 1
-
 
 	/* tempname */
 	tempvar res res2 y2 g1 g2 y
@@ -113,14 +108,20 @@ program define ife, eclass sortpreserve
 	}
 
 	sort `touse' `id1'
-	qui by `touse' `id1': gen `g1' = _n == 1 if `touse'
+	qui by `touse' `id1': gen double `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
 	local N = `g1'[_N]
 
 	sort `touse' `id2'
-	qui by `touse' `id2': gen `g2' = _n == 1 if `touse'
+	qui by `touse' `id2': gen double `g2' = _n == 1 if `touse'
 	qui replace `g2' = sum(`g2') if `touse'
 	local T = `g2'[_N]
+
+
+	qui count if `touse' 
+	local touse_first = _N - r(N) + 1
+	local touse_last = _N
+	local obs = `touse_last'-`touse_first' + 1
 
 
 
@@ -164,10 +165,9 @@ mata:
 		index = st_varindex(y)
 		iindex = st_varindex(id)
 		tindex = st_varindex(time)
-
 		Y = J(N, T, .)
 		R1 = J(N, T, 0)
-
+	
 		if (strlen(w) > 0) {
 			Ws = J(N, T, .)
 			windex = st_varindex(w)
@@ -181,13 +181,15 @@ mata:
 		}
 		else{
 			for (obs = first; obs <= last ; obs++) {  
-				Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
+					Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
 			}
 		}
+
 		na = Y :==.
 		Y = editmissing(Y, 0)
 		error = 1
 		iter = 0
+
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
@@ -222,6 +224,7 @@ mata:
 				st_store(obs, idx, R2[_st_data(obs, iindex), _st_data(obs, tindex)])
 			}	
 		}
+
 
 		if (strlen(residuals) > 0){
 			idx = st_addvar("float", residuals)
