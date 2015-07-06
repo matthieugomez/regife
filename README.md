@@ -7,7 +7,7 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009).
 
 ### Syntax
 
-Beside the usual formula, `regife` requires the option `factors`, which contains an id variable, a time variable, and the dimension.
+`regife` requires a formula and the option `factors`, composed of an id variable, a time variable, and the dimension.
 
 ```
 insheet "data/cigar.csv", clear
