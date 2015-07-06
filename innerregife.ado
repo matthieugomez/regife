@@ -190,15 +190,22 @@ program define innerregife, eclass
 		foreach factor in `id2factorlist'{
 			local id2factors `id2factors'	i.`id1'#c.(`factor')
 		}
-		/* To obtain Zi
-		foreach var in `py' `px'{
-			tempvar temp`var' 
-			reg `var' `id1factors' `id2factors' `wt'  in `touse_first'/`touse_last',  `options' nocons
-			predict `temp`var'', residuals
-		}
-		*/
 
-		/*  
+		/* 1. I can use Zi
+		foreach var in `py' `px'{
+			tempvar temp
+			tempvar temp`var' 
+			qui reg `var'  `id1factors' `wt' in `touse_first'/`touse_last',  nocons
+			predict `temp', residuals
+			qui reg `temp'  `id2factors' `wt' in `touse_first'/`touse_last', nocons
+			predict `temp`var'', residuals
+			drop `temp'
+			local zvarlist `zvarlist' `temp`var''
+		}
+		noi reg `zvarlist' `wt'  in `touse_first'/`touse_last',   nocons `options'
+		 */			
+
+		/*  2. I can use reg
 		use reg (I prefer reghdfe if cluster option)
 		noi reg `py' `px' `id1factors' `id2factors' `wt'  in `touse_first'/`touse_last',   nocons `options'
 		local nx `:word count `px''
@@ -215,8 +222,10 @@ program define innerregife, eclass
 		mat rownames `V' =`xname2'
 		*/
 
+
+		/*  3. I can use reghdfe (better for errors or for high dimensional N)*/
 		qui reghdfe `y'  `x' `wt'  in `touse_first'/`touse_last',  a(`cons' `absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
-		local nx `:word count `x''
+		
 		tempname df_r
 		scalar `df_r' = e(df_r) 
 		tempname b V
@@ -253,18 +262,13 @@ program define innerregife, eclass
 		ereturn scalar rmse = `rmse'	
 	}
 	else{
-		/* valid only if no missing */
-		tempvar cons 
-		gen `cons' = 1
-		local px `cons' `px'
-		local xname `xname2'
+		/* valid only if no missing */		
 		foreach var in `py' `px' {
 			tempvar new`var'
 			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
 			local newlist  `newlist' `new`var''
 		}
 		qui reg `newlist' `wt' in `touse_first'/`touse_last', nocons `options'
-
 
 		local nx `:word count `px''		
 		tempname df_r
@@ -288,9 +292,9 @@ program define innerregife, eclass
 		matrix `V' = e(V)
 		matrix `b' = `b'[1, 2..`nx']
 		matrix `V' = `V'[2..`nx', 2..`nx']* e(df_r) / `=`df_r''
-		mat colnames `b' =`xname2'
-		mat colnames `V' =`xname2'
-		mat rownames `V' =`xname2'
+		mat colnames `b' =`xname'
+		mat colnames `V' =`xname'
+		mat rownames `V' =`xname'
 		tempvar esample
 		gen `esample' = `touse'
 		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
@@ -415,9 +419,10 @@ mata:
 		 V if F' 
 		 U is Lambda  
 		 cross (X, Y) is X'Y  
+		  */
 		 MT = I(T) :- cross(V, V) / T 
 		 MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
-		*/
+		
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')

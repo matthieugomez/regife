@@ -18,29 +18,32 @@ regife sales price, f(state year, 3)
 
 
 ### Absorb
-Impose id or time fixed effect with the option `absorb`. The convergence is generally much faster when id or time fixed effects are specified.
+Impose id or time fixed effect with the option `absorb`. 
 
 ```
 regife sales price, f(state year, 2)  a(state year)
 ```
-
+The convergence is generally *much* faster when id or time fixed effects are specified.
 
 
 
 
 ### Unbalanced Panel
-The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. In this case,  standard errors should be estimated by bootstrap.
+The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. In this case,  *standard errors should be estimated by bootstrap*.
 
 ### Weights
 Weights are supported but should be constant within id
 
 
 ### Standard errors
-Robust standard errors can be specified with the option `vce`.  Except for bootstrap, the `vce` option is simply passed to the command regressing y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
+Robust standard errors can be specified with the option `vce`.  
 
 ```
 regife sales price, f(state year, 2) a(state year) vce(cluster state) 
 ```
+Except for bootstraped standard errors, the `vce` option is simply passed to the command regressing y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
+
+
 
 In my experience, bootstraped errors are much more performant in finite sample:
 ```
@@ -54,13 +57,13 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 
 
 ### Convergence
-The iteration length can be modified using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
+The iteration algorithm can be modified using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
 
 
 
 
 ### Save factors
-Save the loadings and factors by specifying new variable names using `=`
+Save loadings and/or factors by specifying new variable names using `=`
 ```
 regife sales price, f(loading_state=state factor_year=year, 2) 
 ```
@@ -71,7 +74,7 @@ regife sales price, f(loading_state=state factor_year=year, 2)
 
 
 # ife
-The command `ife` estimates a factor model for a variable
+The command `ife` estimates a factor model for some variable
 
 - Contrary to Stata usual `pca` command, 
  - `ife` handles dataset in long forms (ie `ife` works on datasets where each row represents an id and a time, rather than datasets where each row represents an id and each variable a time).

@@ -49,6 +49,7 @@ forval i = 1/1000{
 
 
 	regife Y X1 X2 x w, f(N T, 2)   
+	
 	if e(converged) == "true"{
 		post `postname' (`N') (`T') (`i') ("balanced") (_b[X1]) (_b[X2]) (_b[x]) (_b[w]) (_se[X1]) (_se[X2]) (_se[x]) (_se[w])
 	}
