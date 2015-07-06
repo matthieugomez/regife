@@ -8,7 +8,7 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 ## Syntax
 
-To estimate a model with interactive fixed effects and 3 dimensions
+Estimate models with interactive fixed effects by specifying the option `factors`, containing an id variable, a time variable, and the dimension.
 
 ```
 use "data/income-deregulation", clear
