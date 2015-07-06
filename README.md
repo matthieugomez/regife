@@ -16,7 +16,7 @@ regife p30 intra_dummy, f(state year, 3)
 ```
 
 
-## Save factrors
+## Save factors
 Save the loadings and factors by specifying new variable names in the left hand side of `=` in the option `factors`
 ```
 regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
