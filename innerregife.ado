@@ -411,12 +411,13 @@ mata:
 		
 		V = V[1::d,.] :* sqrt(T)
 		U = U :/ sqrt(T)
-		/*  V if F' */
-		/* U is Lambda  */
-		/* cross (X, Y) is X'Y  */
-		MT = I(T) :- cross(V, V) / T
-		MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
-
+		/* 
+		 V if F' 
+		 U is Lambda  
+		 cross (X, Y) is X'Y  
+		 MT = I(T) :- cross(V, V) / T 
+		 MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
+		*/
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')

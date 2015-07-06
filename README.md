@@ -2,13 +2,12 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects (Bai 2009)
-
+The command `regife` estimates models with interactive fixed effects (Bai 2009). 
 
 
 ### Syntax
 
-Estimate models with interactive fixed effects by specifying the option `factors`, containing an id variable, a time variable, and the dimension.
+The option `factors` contains an id variable, a time variable, and the dimension.
 
 ```
 use "data/income-deregulation", clear
