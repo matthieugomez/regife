@@ -109,20 +109,20 @@ The command `ife` estimates a factor model for a variable
 
 
 
- # cce (Pesaran 2006)
+# cce (Pesaran 2006)
 
- The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
+The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
 
- Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
- - `ccemg` runs the new model within each group and takes the average of beta accross all groups. Errors can be computed with the option `vce`
- - `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies. 
+Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
+- `ccemg` runs the new model within each group and takes the average of beta accross all groups. Errors can be computed with the option `vce`
+- `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies. 
 
- These estimates can be helpful to start the iteration for the `regife` estimator using the option `bstart'.
-
-
+These estimates can be helpful to start the iteration for the `regife` estimator using the option `bstart'.
 
 
-## Installation
+
+
+# Installation
 `regife` requires [`reghdfe` and `hdfe`](https://github.com/sergiocorreia/reghdfe) with version 3.0+
 
 If you have Stata 13+
