@@ -123,7 +123,7 @@ The command `ife` estimates a factor model for a variable
 
 
 ## Installation
-`regife` requires [`reghdfe`](https://github.com/sergiocorreia/reghdfe)
+`regife` requires [`reghdfe` and `hdfe`](https://github.com/sergiocorreia/reghdfe) with version > 3.0
 
 If you have Stata >= 13
 
@@ -132,7 +132,6 @@ net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/
 net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
-(`regife` requires `hdfe` if you want to estimate models with multiple fixed effects)
 
 
 
