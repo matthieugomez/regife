@@ -16,11 +16,6 @@ regife p30 intra_dummy, f(state year, 3)
 ```
 
 
-### Save factors
-Save the loadings and factors by specifying new variable names using `=`
-```
-regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
-```
 
 
 ### Absorb
@@ -66,6 +61,11 @@ Modify when the iteration stops by using the option `tolerance` (default to 1e-9
 
 
 
+### Save factors
+Save the loadings and factors by specifying new variable names using `=`
+```
+regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
+```
 
 
 
