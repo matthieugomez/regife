@@ -54,9 +54,9 @@ program define innerregife, eclass
 	}
 
 
-	/* absorb */
 	tempname df_a
 	if "`absorb'" ~= ""{
+		/* case of high dimensional fixed effects */
 		cap which hdfe.ado
 		if _rc {
 			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
@@ -80,6 +80,7 @@ program define innerregife, eclass
 		local xname2 `xname'
 	}
 	else{
+		/* otherwise add constant to list of regressors */
 		scalar `df_a' = 0
 		local py `y'
 		tempvar cons
@@ -88,7 +89,6 @@ program define innerregife, eclass
 		local xname2 _cons `xname'
 	}
 	/* count number of observations (after hdfe since it reads the absorb syntax) */
-
 	if "`fast'" == ""{
 		if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
 			sort `touse' `id1' `id2'
@@ -99,8 +99,6 @@ program define innerregife, eclass
 			}
 		}
 	}
-
-
 
 
 	/* create group for i and t */
@@ -151,8 +149,7 @@ program define innerregife, eclass
 	local iter = r(N)
 	tempname convergence_error
 	scalar `convergence_error' = r(convergence_error)
-	tempname b
-	matrix `b' = r(b)
+
 
 	if `iter' == `maxiterations'{
 		local converged false
@@ -167,13 +164,20 @@ program define innerregife, eclass
 
 	tempvar esample
 	gen `esample' = `touse'
+
+	tempname b
+	matrix `b' = r(b)
+
 	if "`fast'" ~= ""{
-		tempname V
 		local  p `: word count `xname''
+		if "`absorb'" == ""{
+			matrix `b' = `b'[1, 2..`=`p'+1']
+		}
+		tempname V
 		matrix `V' = J(`p', `p', 0)
-		mat colnames `b' =`xname2' 
-		mat colnames `V' =`xname2'
-		mat rownames `V' =`xname2'
+		mat colnames `b' =`xname' 
+		mat colnames `V' =`xname'
+		mat rownames `V' =`xname'
 		tempname df_r
 		scalar `df_r' = `obs' - `p'
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')

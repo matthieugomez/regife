@@ -37,23 +37,20 @@ Weights are supported but should be constant within id
 
 
 ### Standard errors
-Robust standard errors can be specified with the option `vce`. 
-
-In all cases except boostrap, the option is simply passed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
-
+Robust standard errors can be specified with the option `vce`.  The option is simply passed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` as discussed in section 6 of of Bai 2009).
 
 ```
 regife p30 intra_dummy, f(state year, 2) a(state year) vce(cluster state) 
 ```
 
-To compute standard errors by bootstrap
+In the case of bootstraped errors, the whole model is (including the SVD) is restimated. In my experience, bootstraped errors are much more performant in finite sample.
 ```
 regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100))
 ```
 
 To compute standard errors by block bootstrap
 ```
-regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100) cluster(state))
+regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
 
