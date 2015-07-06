@@ -17,27 +17,26 @@ regife p30 intra_dummy, f(state year, 3)
 
 
 ## Save factors
-Save the loadings and factors by specifying new variable names in the left hand side of `=` in the option `factors`
+Save the loadings and factors by specifying new variable names using `=`
 ```
 regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
 ```
 
 
 ## Absorb
-You can impose id or time fixed effect with the option `absorb`. For instance, 
+Impose id or time fixed effect with the option `absorb`. The convergence is generally *much* faster when id or time fixed effects are specified.
+
 ```
 regife p30 intra_dummy,  a(state year)  f(state year, 2)
 ```
 estimates a model with state fe + year fe + factor model of 2 dimensions
 
-The convergence is generally much faster when id or time fixed effects are specified.
 
 
 
 
 ## Unbalanced Panel
-- The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009.
-- In this case,  *standard errors should be estimated by bootstrap* 
+The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009. In this case,  *standard errors should be estimated by bootstrap* 
 
 ## Weights
 Weights are supported but should be constant within id
@@ -46,7 +45,7 @@ Weights are supported but should be constant within id
 ## Standard errors
 Robust standard errors can be specified with the option `vce`. 
 
-In all cases except boostrap, they are directly fed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
+In all cases except boostrap, the option is simply passed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
 
 
 ```
@@ -61,23 +60,10 @@ regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100) cluster(state
 
 
 
+## Convergence
+Modify when the iteration stops by using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000)
 
 
-
-
-
-
-## Syntax
-The syntax is
-
-```
-regife depvar [indepvars]  [weight] [if] [in], 
-	Factors(idvar timevar, dimension)  [
-	Absorb(string) noCONS 
-	reps(int 0) cluster(clustervars)
-	TOLerance(real 1e-6) MAXIterations(int 10000) 
-	]
-```
 
 
 
@@ -96,7 +82,7 @@ These estimates can be helpful to start the iteration for the `regife` estimator
 
 
 # ife
-The command `ife` estimates a factor model for a given variable. 
+The command `ife` estimates a factor model for a variable
 
 - Contrary to Stata usual `pca` command, 
  - `ife` handles panel data (ie dataset where each row represents an id and a time) 
@@ -137,6 +123,7 @@ If you have Stata >= 13
 
 ```
 net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
+net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
 (`regife` requires `hdfe` if you want to estimate models with multiple fixed effects)
@@ -145,6 +132,7 @@ net install regife, from(https://github.com/matthieugomez/stata-regife/raw/maste
 
 With Stata 12 or older, download the zipfiles of the repositories and run in Stata
 ```
-net install hdfe, from("SomeFolderReghdfe")
+net install hdfe, from("SomeFolderHdfe")
+net install reghdfe, from("SomeFolderReghdfe")
 net install regife, from("SomeFolderRegife")
 ```

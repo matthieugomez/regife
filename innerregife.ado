@@ -21,7 +21,7 @@ program define innerregife, eclass
 	fast ///
 	Absorb(string) /// 
 	bstart(string) ///
-	TOLerance(real 1e-9) MAXIterations(int 20000) VERBose partial  ///
+	TOLerance(real 1e-9) MAXIterations(int 10000) VERBose partial  ///
 	vce(string) ///
 	]
 
@@ -137,7 +137,6 @@ program define innerregife, eclass
 	* first reg  
 	if "`bstart'" ==""{
 		qui _regress `py' `px' `wt' in `touse_first'/`touse_last', nocons
-		*qui ccemg `py' `pcx' `wt' if `touse', f(`id1' `id2')
 		matrix `b' = e(b)
 	}
 	else{
@@ -212,7 +211,7 @@ program define innerregife, eclass
 		mat rownames `V' =`xname2'
 		*/
 
-		qui reghdfe `y' `x' `wt'  in `touse_first'/`touse_last',  a(`cons' `absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
+		qui reghdfe `y'  `x' `wt'  in `touse_first'/`touse_last',  a(`cons' `absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
 		local nx `:word count `x''
 		tempname df_r
 		scalar `df_r' = e(df_r) 
