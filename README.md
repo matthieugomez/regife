@@ -22,9 +22,8 @@ regife p30 intra_dummy, f(state year, 3)
 Impose id or time fixed effect with the option `absorb`. The convergence is generally *much* faster when id or time fixed effects are specified.
 
 ```
-regife p30 intra_dummy,  a(state year)  f(state year, 2)
+regife p30 intra_dummy, f(state year, 2)  a(state year)
 ```
-estimates a model with state fe + year fe + factor model of 2 dimensions
 
 
 
@@ -47,12 +46,15 @@ In all cases except boostrap, the option is simply passed to the regression of y
 regife p30 intra_dummy, f(state year, 2) a(state year) vce(cluster state) 
 ```
 
-To compute boostraped standard errors
+To compute standard errors by bootstrap
+```
+regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100))
+```
+
+To compute standard errors by block bootstrap
 ```
 regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100) cluster(state))
 ```
-
-
 
 
 ### Convergence
