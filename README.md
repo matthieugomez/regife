@@ -17,7 +17,7 @@ regife p30 intra_dummy, f(state year, 3)
 
 
 ## Save factrors
-You can save the loadings and factors by specifying new variable names in the left hand side of `=` in the option `factors`
+Save the loadings and factors by specifying new variable names in the left hand side of `=` in the option `factors`
 ```
 regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
 ```
@@ -116,13 +116,13 @@ The command `ife` estimates a factor model for a given variable.
  ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year, 2) 
  ```
 
- The residual from the overall factor model can then be obtained in the following way:
+- The residual from the overall factor model can then be obtained in the following way:
 
  ```
  gen predict = p30 - (fe_state + fe_year + factors_1 * loading_1 + factors_2 * loading_2)
  ```
 
-- Instead of saving each part of the factor model, obtain directly the residuals using the `residuals` option
+ Instead of saving each part of the factor model, obtain directly the residuals using the `residuals` option
 
  ```
  ife p30, f(state year, 2) residuals(p30_res)

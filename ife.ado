@@ -100,6 +100,9 @@ program define ife, eclass sortpreserve
 		}
 		qui replace `touse' = e(sample)
 	}
+	else{
+		display "the variable is *not* demeaned before fitting a factor model. If you're interested in explaining the variance matrix, use absorb(id) or absorb(time)"
+	}
 
 
 	/* create group for i and t */
@@ -172,7 +175,7 @@ mata:
 		tindex = st_varindex(time)
 		Y = J(N, T, .)
 		R1 = J(N, T, 0)
-	
+
 		if (strlen(w) > 0) {
 			Ws = J(N, T, .)
 			windex = st_varindex(w)
@@ -186,7 +189,7 @@ mata:
 		}
 		else{
 			for (obs = first; obs <= last ; obs++) {  
-					Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
+				Y[_st_data(obs, iindex), _st_data(obs, tindex)] = _st_data(obs, index)  
 			}
 		}
 
