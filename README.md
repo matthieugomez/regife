@@ -6,7 +6,7 @@ The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 
 
-## Syntax
+### Syntax
 
 Estimate models with interactive fixed effects by specifying the option `factors`, containing an id variable, a time variable, and the dimension.
 
@@ -16,14 +16,14 @@ regife p30 intra_dummy, f(state year, 3)
 ```
 
 
-## Save factors
+### Save factors
 Save the loadings and factors by specifying new variable names using `=`
 ```
 regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
 ```
 
 
-## Absorb
+### Absorb
 Impose id or time fixed effect with the option `absorb`. The convergence is generally *much* faster when id or time fixed effects are specified.
 
 ```
@@ -35,14 +35,14 @@ estimates a model with state fe + year fe + factor model of 2 dimensions
 
 
 
-## Unbalanced Panel
+### Unbalanced Panel
 The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009. In this case,  *standard errors should be estimated by bootstrap* 
 
-## Weights
+### Weights
 Weights are supported but should be constant within id
 
 
-## Standard errors
+### Standard errors
 Robust standard errors can be specified with the option `vce`. 
 
 In all cases except boostrap, the option is simply passed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
@@ -60,7 +60,7 @@ regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100) cluster(state
 
 
 
-## Convergence
+### Convergence
 Modify when the iteration stops by using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000)
 
 
@@ -135,7 +135,7 @@ net install regife, from(https://github.com/matthieugomez/stata-regife/raw/maste
 
 
 
-With Stata 12 or older, download the zipfiles of the repositories and run in Stata
+With Stata 12 or older, download the zipfiles of the repositories and run in Stata the following commands:
 ```
 net install hdfe, from("SomeFolderHdfe")
 net install reghdfe, from("SomeFolderReghdfe")
