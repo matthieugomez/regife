@@ -1,10 +1,19 @@
 program define ife, eclass sortpreserve
 	version 13
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string) Dimension(integer)  [Absorb(string) GENerate(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string)   [Absorb(string) GENerate(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
 	check syntax
 	***************************************************************************************************/
+	/* syntax factors */
+	if regexm("`factors'", "(.*),(.*)"){
+		local factors  = regexs(1)
+		local dimension = regexs(2)
+	}
+	else{
+		di as error "dimensions should be specified within the option factors"
+		exit
+	}
 	while (regexm("`factors'", "[ ][ ]+")) {
 		local factors : subinstr local factors "  " " ", all
 	}
@@ -90,10 +99,6 @@ program define ife, eclass sortpreserve
 			predict `res', residuals
 		}
 		qui replace `touse' = e(sample)
-	}
-	else{
-		qui sum `varlist' `sumwt'  if `touse',  meanonly
-		gen `res' = `varlist' - r(mean)
 	}
 
 

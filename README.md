@@ -5,59 +5,60 @@
 The command `regife` estimates models with interactive fixed effects (Bai 2009)
 
 
+
+## Syntax
+
+To estimate a model with interactive fixed effects and 3 dimensions
+
 ```
 use "data/income-deregulation", clear
-```
-
-Model with interactive fixed effects (factor model of 3 dimension)
-```
-regife p30 intra_dummy, f(state year) d(3) reps(100)
-```
-
-Model with interactive fixed effects (state + year fe + factor model of 2 dimensions)
-
-```
-regife p30 intra_dummy,  a(state year)  f(state year) reps(100)
+regife p30 intra_dummy, f(state year, 3)
 ```
 
 
-- The command handles unbalanced panels (ie missing observation for a given id x time) by imputing observations as described in the appendix of Bai 2009.
-- The command `regife` is estimated on the residuals after removing the fixed effect specified in `absorb`. This is correct as long as the fixed effects are compatible with a factor model (in particular id fe and/or time fe)
+## Save factrors
+You can save the loadings and factors by specifying new variable names in the left hand side of `=` in the option `factors`
+```
+regife p30 intra_dummy, f(loading_state=state factor_year=year, 2) 
+```
 
 
+## Absorb
+You can impose id or time fixed effect with the option `absorb`. For instance, 
+```
+regife p30 intra_dummy,  a(state year)  f(state year, 2)
+```
+estimates a model with state fe + year fe + factor model of 2 dimensions
+
+The convergence is generally much faster when id or time fixed effects are specified.
+
+
+
+
+## Unbalanced Panel
+- The command handles unbalanced panels (ie missing observation for a given id x time) as described in the appendix of Bai 2009.
+- In this case,  *standard errors should be estimated by bootstrap* 
+
+## Weights
+Weights are supported but should be constant within id
 
 
 ## Standard errors
+Robust standard errors can be specified with the option `vce`. 
 
+In all cases except boostrap, they are directly fed to the regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
 
-You should estimate standard errors by bootstrap, by specifying the option `reps`. If both `reps` and `cluster` are specified, standard errors are computed by block bootstrap.
 
 ```
-regife p30 intra_dummy, f(state year) d(2) a(state year) cl(state) reps(50)
+regife p30 intra_dummy, f(state year, 2) a(state year) vce(cluster state) 
 ```
 
-
-## Predict
-
-You can save the loadings and factors using the symbol `=` in the option `factors`
-
+To compute boostraped standard errors
 ```
-regife p30 intra_dummy, f(loading_state=state factor_year=year) d(2) a(state year)  
+regife p30 intra_dummy, f(state year, 2)  vce(bootstrap, reps(100) cluster(state))
 ```
 
 
-After saving them,  you can generate the estimated factor using `predict`:
-
-```
-predict factors, f
-```
-- `f` returns the factor term
-- `res` returns residuals without the factor term
-- `xb` returns prediction without the factor term
-- `resf` returns residuals augmented with the factor term
-- `xbf` returns prediction augmented with the factor term
-
-To use the option `f`, `xb` and `resf`, you need to save the interactive fixed effects first
 
 
 
@@ -71,15 +72,12 @@ The syntax is
 
 ```
 regife depvar [indepvars]  [weight] [if] [in], 
-	Factors(idvar timevar) Dimension(integer)  [
+	Factors(idvar timevar, dimension)  [
 	Absorb(string) noCONS 
 	reps(int 0) cluster(clustervars)
 	TOLerance(real 1e-6) MAXIterations(int 10000) 
 	]
 ```
-
-
-
 
 
 
@@ -89,16 +87,10 @@ The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common 
 
 Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
 - `ccemg` runs the new model within each group and takes the average of beta accross all groups. Errors can be computed with the option `vce`
-- `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies. Errors are obtained by ttest for the betas.
+- `ccep` runs the new model on the pooled sample, interacting the mean regressors with group dummies. 
 
-These estimates are easy to compute manually compared to Bai (2009) estimate. I include them in this package for easier comparability. The ccemg estimate is also available in the Stata package [`xtmg`](https://ideas.repec.org/c/boc/bocode/s457238.html). 
+These estimates can be helpful to start the iteration for the `regife` estimator using the option `bstart'.
 
-The syntax for these estimates
-
-```
-ccemg p30 intra_dummy, f(state year)
-ccep p30 intra_dummy, f(state year) vce(cluster state)
-```
 
 
 
@@ -116,12 +108,12 @@ The command `ife` estimates a factor model for a given variable.
  ife p30, f(loading_state=state factor_year=year)  d(2)
  ```
 
-- By default, `ife` demeans the variable (accross the whole sample) and estimates a factor model on the residuals. If you want to estimate a PCA, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`.
+- By default, `ife` does not demean the variable. If you want to estimate a PCA, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`. 
 
 
  ```
- ife p30, a(fe_state = state) f(factors = state loading = year)  d(2) 
- ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year)  d(2) 
+ ife p30, a(fe_state = state) f(factors = state loading = year, 2)  
+ ife p30, a(fe_state = state fe_year = year) f(factors = state loading = year, 2) 
  ```
 
  The residual from the overall factor model can then be obtained in the following way:
@@ -133,13 +125,13 @@ The command `ife` estimates a factor model for a given variable.
 - Instead of saving each part of the factor model, obtain directly the residuals using the `residuals` option
 
  ```
- ife p30, f(state year) d(2) residuals(p30_res)
- ife p30, a(state year) f(state year) d(2) residuals(p30_res)
+ ife p30, f(state year, 2) residuals(p30_res)
+ ife p30, a(state year) f(state year, 2) residuals(p30_res)
  ```
 
 
 
-# Installation
+## Installation
 
 If you have Stata >= 13
 

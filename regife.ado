@@ -3,16 +3,21 @@
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) Dimension(int)    [reps(int 1) CLuster(string) *]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string)     [vce(string) *]
 
 
-	* until reghdfe 3.0 is on ssc
-	local partial partial
 
-	if "`cluster'" ~= ""{
-		local cloption cl(`cluster')
-	}
+	local optionlist `options'
 	/* syntax factors */
+	if regexm("`factors'", "(.*),(.*)"){
+		local factors  = regexs(1)
+		local dimension = regexs(2)
+	}
+	else{
+		di as error "dimensions should be specified within the option factors"
+		exit
+	}
+
 	while (regexm("`factors'", "[ ][ ]+")) {
 		local factors : subinstr local factors "  " " ", all
 	}
@@ -82,7 +87,18 @@ program define regife, sortpreserve
 	local xname `*'
 
 
-	* slight issue if `touse` is redefined by `absorbvarlist`
+	* syntax errors
+	if "`vce'" ~= ""{
+		local 0 `vce'
+		syntax anything [, reps(int 50) cluster(varname)]
+		if "`anything'" == "bootstrap"{
+			local bootstrap "yes"
+		}
+		local vceoption vce(`vce')
+	}
+
+
+	* mean weight
 	if "`wvar'" ~= ""{
 		tempvar wvar2
 		qui bys `touse' `id1': gen double `wvar2' = sum(`wvar') if `touse'
@@ -91,20 +107,20 @@ program define regife, sortpreserve
 	}
 
 
-	if `reps' <= 1 {
-		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `cloption'  `options' 
+	if "`bootstrap'" ~= "yes" {
+		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `vceoption' `optionlist'
 	}
 	else{
-		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `options' 
+		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `optionlist' 
 		if "`cluster'" == ""{
 			bootstrap,  reps(`reps') : ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast  `options'
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `optionlist'
 		}
 		else{
 			tempvar clusterid
 			tsset, clear
-			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid') : ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `options'
+			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `optionlist'
 		}
 	}
 

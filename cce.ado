@@ -74,14 +74,7 @@ program define cce, eclass sortpreserve
 	local obs = `touse_last'-`touse_first' + 1
 
 
-	/* create weighted mean by time */
-	sort `touse' `time'
-	foreach v of varlist `y' `x' {
-		tempvar `v'_p
-		qui by `touse' `time': gen ``v'_p' = sum((`v')`wtv2')/sum(((`v')!=.)`wtv2') if `touse'
-		qui by `touse' `time': replace ``v'_p' = ``v'_p'[_N]
-		local felist `felist' ``v'_p'
-	}
+
 	if "`ccep'" ~= ""{
 		if "`vce'"~=""{
 			local vce vce(`vce')
@@ -179,105 +172,130 @@ program define cce, eclass sortpreserve
 		ereturn local predict "regife_p"
 	} 
 	else if "`ccemg'" ~= ""{
-		* remove variables colinear for all groups (this allows to get some means that are at least meaningul)
 
-
-		_rmcoll `x' `felist' `wt' in `touse_first'/`touse_last',  forcedrop 
-		local vlist = r(varlist)
-		local x: list vlist - felist
-		local felist: list vlist - x
-		* add fixed effect interacted with
-		tempvar bylength
+		/* remove observation that don't move within id */
 		sort `touse' `id'
-		local type = cond(c(N)>c(maxlong), "double", "long")
-		qui bys `touse' `id' : gen `type' `bylength' = _N 
-		tempvar t
-		qui by `touse' `id': gen `t' = _n == 1 if `touse'
-		qui replace `t' = sum(`t')
-		local N = `t'[_N]
-		tempname b
-		local p `: word count `x''
-		mata: `b' = J(`N', `p', .)
-		local iter = 0
-		tempname w b1 V1 ng
-		if "`wt'" ~= ""{
-			mata: `w' = J(`N', 1, 0)
-		}
-		else{
-			mata: `w' = J(`N', 1, 1)
-		}
-		tempvar cons
-
-
-
-		sort `touse' `id'
-		local start = `touse_first'
-		while `start' <= `touse_last'{
-			local base2 ""
-			local iter = `iter' + 1
-			local end = `start' + `bylength'[`start'] - 1
-			if "`wt'" ~= ""{
-				qui sum  `wt' in `start'/`end', meanonly
-				mata: `w'[`iter', 1]  = st_numscalar("r(sum)")
+		foreach v of varlist `x' {
+			tempvar temp
+			qui by `touse' `id': gen `temp' = sum((`v')`wtv2')/sum(((`v')!=.)`wtv2') if `touse'
+			qui by `touse' `id': replace `temp' = (`v' - `temp'[_N])^2
+			qui sum `temp'
+			if r(mean) > 1e-10{
+				local x1 `x1' `v'
 			}
+			drop `temp'
+		}
 
-			/*  flag coefficients that are meaningless (sensible to which variable is removed) */
-			local all `x' `felist'
-			qui _rmcoll `all'  `wt' in `start'/`end', forcedrop 
-			local p `: word count `x''
-			if `=r(k_omitted)' {
-				* I want to remove all variables that are jointly colinear.
-				local base = r(varlist)
-				local omitted: list all - base
-				qui _rmcoll `omitted' `wt' in `start'/`end', forcedrop 
-				local omitted = r(varlist)
-				if "`omitted'" ~= "."{
-					foreach v in `base'{
-						qui _rmcoll `v' `omitted' `wt' in `start'/`end', forcedrop 
-						if `=r(k_omitted)' == 0 {
-							local base2 "`base2' `v' "
-						}
-					}
-					cap _rmdcoll `y' `base'  `wt' in `start'/`end'
-					if _rc{
-						qui _regress `y' `x' `felist'  `wt' in `start'/`end'
-						matrix `b1' = get(_b)
-						matrix `V1'= vecdiag(get(VCE))
-						local col = 0
-						foreach v in `x'{
-							local col = `col' + 1
-							if strpos("`base2'", " `v' "){
-								mata: `b'[`iter', `col']  = st_matrix("`b1'")[1,`col']
-							}
-						}
+		/* create weighted mean by time */
+		sort `touse' `time'
+		foreach v of varlist `y' `x' {
+			tempvar `v'_p
+			qui by `touse' `time': gen ``v'_p' = sum((`v')`wtv2')/sum(((`v')!=.)`wtv2') if `touse'
+			qui by `touse' `time': replace ``v'_p' = ``v'_p'[_N]
+			local felist `felist' ``v'_p'
+		}
+
+	* remove variables colinear for all groups (this allows to get some means that are at least meaningul)
+	qui _rmcoll `x1' `felist' `wt' in `touse_first'/`touse_last',  forcedrop 
+
+	local vlist = r(varlist)
+	local x2: list vlist - felist
+	local felist: list vlist - x
+	local x `x2'
+	local xname `x'
+
+
+	tempvar bylength
+	sort `touse' `id'
+	local type = cond(c(N)>c(maxlong), "double", "long")
+	qui bys `touse' `id' : gen `type' `bylength' = _N 
+	tempvar t
+	qui by `touse' `id': gen `t' = _n == 1 if `touse'
+	qui replace `t' = sum(`t')
+	local N = `t'[_N]
+
+
+	tempname b
+	local p `: word count `x''
+	mata: `b' = J(`N', `p', .)
+	local iter = 0
+	tempname w b1 V1 ng
+	if "`wt'" ~= ""{
+		mata: `w' = J(`N', 1, 0)
+	}
+	else{
+		mata: `w' = J(`N', 1, 1)
+	}
+	tempvar cons
+
+
+	sort `touse' `id'
+	local start = `touse_first'
+	while `start' <= `touse_last'{
+		local base2 ""
+		local iter = `iter' + 1
+		local end = `start' + `bylength'[`start'] - 1
+		if "`wt'" ~= ""{
+			qui sum  `wt' in `start'/`end', meanonly
+			mata: `w'[`iter', 1]  = st_numscalar("r(sum)")
+		}
+
+		/*  flag coefficients that are meaningless (sensible to which variable is removed) */
+		qui _rmcoll  `x' `felist'  `wt' in `start'/`end', forcedrop 
+		if `=r(k_omitted)' {
+			* I want to remove all variables that are jointly colinear.
+			local base = r(varlist)
+			local omitted: list all - base
+			qui _rmcoll `omitted' `wt' in `start'/`end', forcedrop 
+			local omitted = r(varlist)
+			if "`omitted'" ~= "."{
+				foreach v in `base'{
+					qui _rmcoll `v' `omitted' `wt' in `start'/`end', forcedrop 
+					if `=r(k_omitted)' == 0 {
+						local base2 "`base2' `v' "
 					}
 				}
-			}				
-			else{
-				cap _rmdcoll `y' `x' `felist'  `wt' in `start'/`end'
-				if _rc == 0{
+				cap _rmdcoll `y' `base'  `wt' in `start'/`end'
+				if _rc{
 					qui _regress `y' `x' `felist'  `wt' in `start'/`end'
 					matrix `b1' = get(_b)
 					matrix `V1'= vecdiag(get(VCE))
-					mata: `b'[`iter', .]  = st_matrix("`b1'")[1, 1::`p']
+					local col = 0
+					foreach v in `x'{
+						local col = `col' + 1
+						if strpos("`base2'", " `v' "){
+							mata: `b'[`iter', `col']  = st_matrix("`b1'")[1,`col']
+						}
+					}
 				}
 			}
-			local start = `end' + 1
+		}				
+		else{
+			cap _rmdcoll `y' `x' `felist'  `wt' in `start'/`end'
+			if _rc == 0{
+				qui _regress `y' `x' `felist'  `wt' in `start'/`end'
+				matrix `b1' = get(_b)
+				matrix `V1'= vecdiag(get(VCE))
+				mata: `b'[`iter', .]  = st_matrix("`b1'")[1, 1::`p']
+			}
 		}
-		mata: meanvar(`b', `w', "`b1'", "`V1'", "`ng'")
-		matrix colnames `b1' = `xname'
-		matrix colnames `ng' = `xname'
-		matrix rownames `V1' = `xname'
-		matrix colnames `V1' = `xname'
-		ereturn post `b1' `V1', depname(`yname') obs(`obs') esample(`touse') dof(1)
-		ereturn matrix Neff = `ng'
-
+		local start = `end' + 1
 	}
-	ereturn local id1 `id'
-	ereturn local id2 `time'
-	ereturn local predict "regife_p"
-	Header
-	ereturn display
+	mata: meanvar(`b', `w', "`b1'", "`V1'", "`ng'")
+	matrix list `b1'
+	matrix colnames `b1' = `xname'
+	matrix colnames `ng' = `xname'
+	matrix rownames `V1' = `xname'
+	matrix colnames `V1' = `xname'
+	ereturn post `b1' `V1', depname(`yname') obs(`obs') esample(`touse') dof(1)
+	ereturn matrix Neff = `ng'
+
+}
+ereturn local id1 `id'
+ereturn local id2 `time'
+ereturn local predict "regife_p"
+Header
+ereturn display
 
 end
 
