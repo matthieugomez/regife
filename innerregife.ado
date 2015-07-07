@@ -21,7 +21,7 @@ program define innerregife, eclass
 	fast ///
 	Absorb(string) /// 
 	bstart(string) ///
-	TOLerance(real 1e-9) MAXIterations(int 10000) VERBose partial  ///
+	TOLerance(real 1e-9) MAXIterations(int 2000) VERBose partial  ///
 	vce(string) ///
 	]
 
@@ -165,15 +165,18 @@ program define innerregife, eclass
 	tempvar esample
 	gen `esample' = `touse'
 
-	tempname b
-	matrix `b' = r(b)
+	tempname bend
+	matrix `bend' = r(b)
 
 	if "`fast'" ~= ""{
 		local  p `: word count `xname''
+		tempname b V
 		if "`absorb'" == ""{
-			matrix `b' = `b'[1, 2..`=`p'+1']
+			matrix `b' = `bend'[1, 2..`=`p'+1']
 		}
-		tempname V
+		else{
+			matrix `b' = `bend'
+		}
 		matrix `V' = J(`p', `p', 0)
 		mat colnames `b' =`xname' 
 		mat colnames `V' =`xname'
@@ -203,7 +206,7 @@ program define innerregife, eclass
 			local zvarlist `zvarlist' `temp`var''
 		}
 		noi reg `zvarlist' `wt'  in `touse_first'/`touse_last',   nocons `options'
-		 */			
+		*/			
 
 		/*  2. I can use reg
 		use reg (I prefer reghdfe if cluster option)
@@ -306,6 +309,7 @@ program define innerregife, eclass
 		ereturn scalar mss = `mss'
 		ereturn scalar rmse = `rmse'	
 	}
+	ereturn matrix bend = `bend'
 	ereturn scalar iter = `iter'
 	ereturn scalar convergence_error = `convergence_error'
 	ereturn local converged `converged'
@@ -416,12 +420,12 @@ mata:
 		V = V[1::d,.] :* sqrt(T)
 		U = U :/ sqrt(T)
 		/* 
-		 V if F' 
-		 U is Lambda  
-		 cross (X, Y) is X'Y  
-		  */
-		 MT = I(T) :- cross(V, V) / T 
-		 MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
+		V if F' 
+		U is Lambda  
+		cross (X, Y) is X'Y  
+		*/
+		MT = I(T) :- cross(V, V) / T 
+		MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
 		
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)

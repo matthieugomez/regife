@@ -23,16 +23,14 @@ Impose id or time fixed effect with the option `absorb`.
 ```
 regife sales price, f(state year, 2)  a(state year)
 ```
-The convergence is generally *much* faster when id or time fixed effects are specified.
+In my experience, the convergence is much faster when id or time fixed effects are specified.
 
 
 
 
 ### Unbalanced Panel
-The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. In this case,  *standard errors should be estimated by bootstrap*.
+The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. In this case,  standard errors should be estimated by bootstrap.
 
-### Weights
-Weights are supported but should be constant within id
 
 
 ### Standard errors
@@ -56,9 +54,12 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
 
+### Weights
+Weights are supported but should be constant within id
+
+
 ### Convergence
 The iteration algorithm can be modified using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-
 
 
 
@@ -76,7 +77,7 @@ regife sales price, f(loading_state=state factor_year=year, 2)
 # ife
 The command `ife` estimates a factor model for some variable
 
-- Contrary to Stata usual `pca` command, 
+- Contrary to Stata `pca` command, 
  - `ife` handles dataset in long forms (ie `ife` works on datasets where each row represents an id and a time, rather than datasets where each row represents an id and each variable a time).
  - `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
 
@@ -115,7 +116,7 @@ The command `ife` estimates a factor model for some variable
 The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
 
 Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
-- `ccemg` runs the new model within each group and tests the beta accross all groups. 
+- `ccemg` runs the new model within each id and averages the betas accross all ids. 
 - `ccep` runs the new model on the pooled sample, interacting the newly created variables with group dummies. 
 
 `ccep` relies on `reghdfe` and is generally faster than `ccemg`.

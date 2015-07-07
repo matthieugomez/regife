@@ -111,16 +111,30 @@ program define regife, sortpreserve
 		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') `vceoption' `optionlist'
 	}
 	else{
+		/* get bstart */
 		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  `optionlist' 
+		tempname bstart 
+		matrix `bstart' = e(bend)
 		if "`cluster'" == ""{
 			bootstrap,  reps(`reps') : ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `optionlist'
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast bstart(`bstart') `optionlist'
 		}
 		else{
 			tempvar clusterid
 			tsset, clear
-			bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `optionlist'
+			if "`id1'" == "`cluster'"{
+				bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
+				innerregife, dimension(`dimension') id1(`clusterid') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast bstart(`bstart') `optionlist'
+			}
+			else if "`id2'" == "`cluster'"{
+				bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
+				innerregife, dimension(`dimension') id1(`id1') id2(`clusterid') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast `optionlist'
+			}
+			else{
+					bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
+					innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') fast  bstart(`bstart')`optionlist'
+			}
+
 		}
 	}
 
