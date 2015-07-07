@@ -46,7 +46,7 @@ In presence of correlation, the estimate for beta isbiased (See Theorem 3 in Bai
 
 
 
-In my experience, bootstraped errors are much more performant in finite sample:
+In my experience, it is wiser to bootstrap the standard errors, [especially for small T](monte-carlo/result.png)
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
