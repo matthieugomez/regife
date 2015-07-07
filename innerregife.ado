@@ -88,6 +88,8 @@ program define innerregife, eclass
 		local px `cons' `x'
 		local xname2 _cons `xname'
 	}
+
+
 	/* count number of observations (after hdfe since it reads the absorb syntax) */
 	if "`fast'" == ""{
 		if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{

@@ -34,12 +34,15 @@ The command handles unbalanced panels (ie missing observation for a given id, ti
 
 
 ### Standard errors
-Robust standard errors can be specified with the option `vce`.  
+The `vce` option allows to compute robust standard errors 
 
 ```
 regife sales price, f(state year, 2) a(state year) vce(cluster state) 
 ```
-Except for bootstraped standard errors, the `vce` option is simply passed to the command regressing y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
+
+Except for bootstrap, the `vce` option is simply passed to the command regressing y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
+
+In presence of correlation, the estimate for beta isbiased (See Theorem 3 in Bai 2009). Instead of computing robust standard errors, you may want to add enough factors until residuals are i.i.d.
 
 
 
@@ -48,7 +51,7 @@ In my experience, bootstraped errors are much more performant in finite sample:
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
 
-Obtain standard errors by block bootstrap:
+To obtain standard errors by block bootstrap:
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
@@ -70,7 +73,12 @@ regife sales price, f(loading_state=state factor_year=year, 2)
 ```
 
 
+### Speed
+`regife` can be quite slow since typically, a high number of iterations is required until convergence. 
 
+- You can start the convergence at a given `beta` using `bstart`
+- id fixed effects or time fixed effects tend to speed up the convergence
+- A similar algorithm is available in Julia [https://github.com/matthieugomez/FixedEffectModels.jl] and ends up being 10x faster
 
 
 
