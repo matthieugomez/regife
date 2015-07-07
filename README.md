@@ -78,7 +78,7 @@ regife sales price, f(loading_state=state factor_year=year, 2)
 
 - You can start the convergence at a given `beta` using `bstart`
 - id fixed effects or time fixed effects tend to speed up the convergence
-- A [similar algorithm](https://github.com/matthieugomez/FixedEffectModels.jl) is available in Julia  and ends up being 10x faster
+- The [same algorithm](https://github.com/matthieugomez/FixedEffectModels.jl) is available in Julia, and is 10x faster
 
 
 
@@ -95,26 +95,20 @@ The command `ife` estimates a factor model for some variable
  ife sale, f(loading_state=state factor_year=year)  d(2)
  ```
 
+ If you want to obtain residuals, you can directly use the `residuals` option
+
+ ```
+ ife sale, f(state year, 2) residuals(p30_res)
+ ```
+
 - By default, `ife` does not demean the variable. If you want to estimate a PCA, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`. 
 
 
  ```
- ife sale, a(fe_state = state) f(factors = state loading = year, 2)  
  ife sale, a(fe_state = state fe_year = year) f(factors = state loading = year, 2) 
- ```
-
-- The residual from the overall factor model can then be obtained in the following way:
-
- ```
- gen predict = p30 - (fe_state + fe_year + factors_1 * loading_1 + factors_2 * loading_2)
- ```
-
- Instead of saving each part of the factor model, obtain directly the residuals using the `residuals` option
-
- ```
- ife sale, f(state year, 2) residuals(p30_res)
  ife sale, a(state year) f(state year, 2) residuals(p30_res)
  ```
+
 
 
 
