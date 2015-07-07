@@ -18,10 +18,10 @@ local delta 4
 
 
 
-local Ns 100 100 100
-local Ts 10 20 50
+local Ns 100
+local Ts 100
 
-forval j = 1/3{
+forval j = 1/1{
 	local N `:word `j' of `Ns''
 	local T `:word `j' of `Ts''
 
