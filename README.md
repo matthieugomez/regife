@@ -78,7 +78,7 @@ regife sales price, f(loading_state=state factor_year=year, 2)
 
 - You can start the convergence at a given `beta` using `bstart`
 - id fixed effects or time fixed effects tend to speed up the convergence
-- A similar algorithm is available in Julia [https://github.com/matthieugomez/FixedEffectModels.jl] and ends up being 10x faster
+- A [similar algorithm](https://github.com/matthieugomez/FixedEffectModels.jl) is available in Julia  and ends up being 10x faster
 
 
 
