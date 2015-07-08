@@ -143,21 +143,13 @@ ssc install regife
 ```
 
 
-To install the latest version  on Github with Stata13+
-```
-net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
-```
+To install the latest version  on Github 
+- with Stata13+
+	```
+	net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
+	```
 
-With Stata 12 or older, download the zipfiles of the repositories and run in Stata the following commands:
-```
-net install regife, from("SomeFolderRegife")
-```
-
-### requirement
-
-`regife` requires [`reghdfe` and `hdfe`](https://github.com/sergiocorreia/reghdfe) with version 3.0+
-
-```
-ssc install reghdfe
-ssc install hdfe
-```
+- with Stata 12 or older, download the zipfiles of the repositories and run in Stata the following commands:
+	```
+	net install regife, from("SomeFolderRegife")
+	```
