@@ -153,7 +153,6 @@ program define innerregife, eclass
 	tempname convergence_error
 	scalar `convergence_error' = r(convergence_error)
 
-
 	if `iter' == `maxiterations'{
 		local converged false
 	}
@@ -186,10 +185,10 @@ program define innerregife, eclass
 	else if  "`partial'" == ""{
 		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
 		foreach factor in `id1factorlist'{
-			local id1factors `id1factors'	i.`id2'#c.(`factor')
+			local id1factors `id1factors'	i.`id2'#c.`factor'
 		}
 		foreach factor in `id2factorlist'{
-			local id2factors `id2factors'	i.`id1'#c.(`factor')
+			local id2factors `id2factors'	i.`id1'#c.`factor'
 		}
 
 
@@ -226,11 +225,7 @@ program define innerregife, eclass
 		*/
 
 		/*  3. I can use reghdfe (better for errors or for high dimensional N)*/
-		qui reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorbgroup' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
-
-
-
-
+		qui reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
 
 
 		tempname df_r
@@ -353,8 +348,8 @@ helper functions
 set matastrict on
 mata:
 
-	pointer iteration(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resname, string scalar verbose){
-		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm
+	pointer iteration(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
+		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
 		string scalar name
 		real colvector s, b1, b2
@@ -377,10 +372,15 @@ mata:
 			M = invsym(quadcross(X, X)) * X'
 		}
 		R = J(N, T, 0)
+		R2 = J(N, T, 0)
+		factorsfull = J(T, T, .)
+		variance = J(T, T, .)
+		S = J(T, 1, .)
 		V = J(T, T, .)
 		iter = 0
 		error = 1
 		while ((maxiterations == 0) | (iter < maxiterations)){
+			R = R2
 			iter = iter + 1
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
@@ -395,18 +395,19 @@ mata:
 			for (obs = 1; obs <= last -first + 1; obs++) {    
 				R[|index[obs, .]|]= tY[obs]
 			}
-			if (strlen(w) > 0) {
-				R = R :* Ws
-			}
 			/* do PCA of residual */
-			_svd(R, s, V)
 			if (strlen(w) > 0) {
-				R = R :/ Ws
+				variance = cross(R, Ws, R)
 			}
-			U = R[.,(1::d)] * diag(s[1::d]) 
-			R = U *  V[(1::d),.] 
+			else{
+				variance = cross(R, R)
+			}
+			_symeigensystem(variance, factorsfull, S)
+			/* compute R2, a low rank appproximation of R */
+			variance2 = cross(factorsfull[., 1::d]', factorsfull[., 1::d]')
+			R2 = R * variance2
 			for (obs = 1; obs <= last -first + 1; obs++) {    
-				tY[obs] = R[|index[obs, .]|] 
+				tY[obs] = R2[|index[obs, .]|] 
 			}
 			/* estimate coefficient of (Y- PCA(RES)) on b */
 			b2 = M * (Y :- tY)
@@ -416,17 +417,15 @@ mata:
 				break
 			}
 		}
+		factors = factorsfull[., 1::d] :* sqrt(T)
+		loadings = (R * factors) :/ N
 
-		V = V[1::d,.] :* sqrt(T)
-		U = U :/ sqrt(T)
-		/* 
-		V if F' 
-		U is Lambda  
-		cross (X, Y) is X'Y  
-		*/
-		MT = I(T) :- cross(V, V) / T 
-		MI = I(N) :- ((U :* Ws) * invsym(cross((U :* Ws), (U:* Ws))) * (U :* Ws)')
 
+	
+
+		MT = I(T) :- cross(factors', factors') / T 
+		MI = I(N) :- ((loadings :* Ws) * invsym(cross((loadings :* Ws), (loadings:* Ws))) * (loadings :* Ws)')
+		
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')
@@ -434,23 +433,21 @@ mata:
 		for (col = 1; col <= d; col++){
 			idx = st_addvar("double", names[col])
 			for (obs = first; obs <= last ; obs++) { 
-				st_store(obs, idx , U[index[obs - first + 1, 1], col])
+				st_store(obs, idx , loadings[index[obs - first + 1, 1], col])
 			} 
 		}
 		names = tokens(id2factorlist)
 		for (col = 1; col <= d; col++){
 			idx = st_addvar("double", names[col])
 			for (obs = first; obs <= last ; obs++) { 
-				st_store(obs, idx , V[col, index[obs - first + 1 ,2]])
+				st_store(obs, idx , factors[index[obs - first + 1 ,2], col])
 			} 
 		}
-
 		res = Y :- tY :- X * b2
-		idx = st_addvar("double", resname)
+		idx = st_addvar("double", resgen)
 		for (obs = first; obs <= last ; obs++) { 
 			st_store(obs, idx , res[obs-first + 1])
-		} 
-
+		}
 		return(&MT, &MI, &index, &Ws)
 	}
 
