@@ -68,8 +68,16 @@ The iteration algorithm can be modified using the option `tolerance` (default to
 
 ### Save factors
 Save loadings and/or factors by specifying new variable names using `=`
+
 ```
-regife sales price, f(loading_state=state factor_year=year, 2) 
+regife sales price, a(fe = state) f(loading_state=state factor_year=year, 2) 
+```
+
+To obtain residuals, directly use the option `residuals`
+
+
+```
+regife sales price, f(state year, 2) residuals(newres)
 ```
 
 
