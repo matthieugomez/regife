@@ -137,19 +137,22 @@ Like with year fixed effect, these commands generate the mean value of regressor
 # Installation
 `regife` requires [`reghdfe` and `hdfe`](https://github.com/sergiocorreia/reghdfe) with version 3.0+
 
-If you have Stata 13+
-
+### ssc
 ```
-net install hdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
-net install reghdfe, from (https://raw.githubusercontent.com/sergiocorreia/reghdfe/master/package/)
+ssc install hdfe
+ssc install reghdfe
+ssc install regife
+```
+
+
+
+### development
+To install the latest version on Github
+```
 net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
 ```
 
-
-
 With Stata 12 or older, download the zipfiles of the repositories and run in Stata the following commands:
 ```
-net install hdfe, from("SomeFolderHdfe")
-net install reghdfe, from("SomeFolderReghdfe")
 net install regife, from("SomeFolderRegife")
 ```

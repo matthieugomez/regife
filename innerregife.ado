@@ -12,7 +12,7 @@ program define innerregife, eclass
 	fast ///
 	Absorb(string) absorbvars(string) /// 
 	bstart(string) ///
-	TOLerance(real 1e-9) MAXIterations(int 5000) VERBose partial  ///
+	TOLerance(real 1e-9) MAXIterations(int 10000) VERBose partial  ///
 	vce(string) ///
 	]
 
@@ -181,8 +181,8 @@ program define innerregife, eclass
 			local id2factors `id2factors'	i.`id1'#c.`factor'
 		}
 
-		qui reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
-
+		qui cap reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
+		
 
 		tempname df_r
 		scalar `df_r' = e(df_r) 
@@ -218,6 +218,7 @@ program define innerregife, eclass
 		ereturn scalar F = `F'
 		ereturn scalar mss = `mss'
 		ereturn scalar rmse = `rmse'	
+	
 	}
 	
 
@@ -454,8 +455,8 @@ program define Header
 	}
 
 	* iteration
-	if !missing(e(iter)) {
-		.`right'.Arrpush `C3' "Number of iter" `C4' "= " as res %`c4wfmt'.0f e(iter)
+	if !missing(e(iterations)) {
+		.`right'.Arrpush `C3' "Iterations" `C4' "= " as res %`c4wfmt'.0f e(iterations)
 	}
 
 

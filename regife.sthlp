@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.1 08jul2015}{...}
+{* *! version 0.2 08jul2015}{...}
 {vieweralsosee "reghdfe" "help reghdfe"}{...}
 {vieweralsosee "xtmg" "help xtmg"}{...}
 {viewerjumpto "Syntax" "regife##syntax"}{...}
@@ -44,7 +44,7 @@
 {synopt:{opt vce}{cmd:(}{help reghdfe##vcetype:vcetype}[, {it:opt}]{cmd:)}}{it:vcetype}}
 is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt cl:uster} {it:clustervars}. Monte carlo evidence suggests that bootstrap performs better in finite sample{p_end}
 {synopt:{opt tol:erance(#)}} specifies the tolerance criterion for convergence; default is {cmd:tolerance(1e-9)}{p_end}
-{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(5000)}{p_end}
+{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(5000)}. 0 corresponds to an illimited number of iterations{p_end}
 {synopt :{opt res:iduals(newvar)}} save residuals {p_end}
 {synopt :{opt bstart(matrix)}} start the iteration algorithm at a given value  for b{p_end}
 {synoptline}
@@ -61,22 +61,22 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {phang2}{cmd:. webuse nlswork}{p_end}
 {phang2}{cmd:. keep if id <= 100}{p_end}
 
-{pstd}Factor model in id, year of dimension 3{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 3)}{p_end}
+{pstd}Factor model in id, year of dimension 1{p_end}
+{phang2}{cmd:. regife  ln_w tenure, f(id year, 1)}{p_end}
 {pstd}Model including id fixed effect, and a factor model in id, year of dimension 2{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(id) f(id year, 2)}{p_end}
-{pstd}Model including id fixed effect, year fixed effect,  and a factor model in id, year of dimension 2{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(id year) f(id year, 2)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(id) f(id year, 1)}{p_end}
+{pstd}Model including id fixed effect, year fixed effect,  and a factor model in id, year of dimension 1{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(id year) f(id year, 1)}{p_end}
 {pstd}Save interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(fid = id fyear = year, 2)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, f(fid = id fyear = year, 1)}{p_end}
 {pstd}Save fixed effects and interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(feid = id fe year = year) f(fid = id fyear = year, 2)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(feid = id fe year = year) f(fid = id fyear = year, 1)}{p_end}
 {pstd}Generate residuals{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 2) residuals(newvar)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) residuals(newvar)}{p_end}
 {pstd}Bootstrap standard errros{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 2) vce(bootstrap)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) vce(bootstrap)}{p_end}
 {pstd}Block bootstrap with respect to id{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 2) vce(bootstrap, cluster(id))}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) vce(bootstrap, cluster(id))}{p_end}
 
 
 
