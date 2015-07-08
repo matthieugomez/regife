@@ -9,9 +9,10 @@ d KW: xtmg, xtcd, reghdfe
 d
 d Requires: Stata version 12
 d
-d Distribution-Date: 20150525
+d Distribution-Date: 20150708
 d
 f regife.ado
+f regife.sthlp
 f innerregife.ado
 f ccemg.ado
 f ccep.ado

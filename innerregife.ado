@@ -1,15 +1,5 @@
 		
 /***************************************************************************************************
-- check standard error clustered with clustered bootrastp
-- give results of monte carlo in the README
-R is
-N <- 46
-T <- 30
-data(Cigar)
-sales = matrix(Cigar$sales, T,N)
-price = matrix(Cigar$price, T,N)
-summary(Eup(sales ~ price, factor.dim = 2))
-summary(Eup(sales ~ price, factor.dim = 2, additive.effects = "time"))
 
 ***************************************************************************************************/
 program define innerregife, eclass 
@@ -20,7 +10,7 @@ program define innerregife, eclass
 	y(string) x(string) xname(string) yname(string) /// 
 	touse(string)  wvar(string) wtype(string)  ///
 	fast ///
-	Absorb(string) absorbgroup(string) /// 
+	Absorb(string) absorbvars(string) /// 
 	bstart(string) ///
 	TOLerance(real 1e-9) MAXIterations(int 5000) VERBose partial  ///
 	vce(string) ///
@@ -65,7 +55,7 @@ program define innerregife, eclass
 		}
 		tempvar sample
 		tempname prefix
-		qui hdfe `y' `x'  `wt' if `touse', a(`absorbgroup') gen(`prefix') sample(`sample')
+		qui hdfe `y' `x'  `wt' if `touse', a(`absorbvars') gen(`prefix') sample(`sample')
 		scalar `df_a' = e(df_a)
 		local touse `sample'
 		tempvar `prefix'`y'
@@ -142,13 +132,14 @@ program define innerregife, eclass
 	}
 	else{
 		local b `bstart'
-		matrix list `b'
 	}
 
 
 
 	* iterate 
 	mata: info = iteration("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1factorlist'", "`id2factorlist'", "`res'", "`verbose'")
+	tempname bend
+	matrix `bend' = r(b)
 	local iter = r(N)
 	tempname convergence_error
 	scalar `convergence_error' = r(convergence_error)
@@ -167,22 +158,21 @@ program define innerregife, eclass
 	tempvar esample
 	gen `esample' = `touse'
 
-	tempname bend
-	matrix `bend' = r(b)
+
 
 	if "`fast'" ~= ""{
-		local  p `: word count `xname''
+		local  p `: word count `xname2''
 		tempname b V
 		matrix `b' = `bend'
 		matrix `V' = J(`p', `p', 0)
-		mat colnames `b' =`xname' 
-		mat colnames `V' =`xname'
-		mat rownames `V' =`xname'
+		mat colnames `b' =`xname2' 
+		mat colnames `V' =`xname2'
+		mat rownames `V' =`xname2'
 		tempname df_r
 		scalar `df_r' = `obs' - `p'
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
 	}
-	else if  "`partial'" == ""{
+	else{
 		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
 		foreach factor in `id1factorlist'{
 			local id1factors `id1factors'	i.`id2'#c.`factor'
@@ -191,40 +181,6 @@ program define innerregife, eclass
 			local id2factors `id2factors'	i.`id1'#c.`factor'
 		}
 
-
-
-		/* 1. I can use Zi
-		foreach var in `py' `px'{
-			tempvar temp
-			tempvar temp`var' 
-			qui reg `var'  `id1factors' `wt' in `touse_first'/`touse_last',  nocons
-			predict `temp', residuals
-			qui reg `temp'  `id2factors' `wt' in `touse_first'/`touse_last', nocons
-			predict `temp`var'', residuals
-			drop `temp'
-			local zvarlist `zvarlist' `temp`var''
-		}
-		noi reg `zvarlist' `wt'  in `touse_first'/`touse_last',   nocons `options'
-		*/			
-
-		/*  2. I can use reg
-		use reg (I prefer reghdfe if cluster option)
-		noi reg `py' `px' `id1factors' `id2factors' `wt'  in `touse_first'/`touse_last',   nocons `options'
-		local nx `:word count `px''
-		tempname df_r
-		scalar `df_r' = e(df_r) - `df_a' -  (`N'+`T')*`dimension'
-		tempname b V
-		matrix `b' = e(b)
-		matrix `V' = e(V)
-		matrix `b' = `b'[1, 1..`nx']
-		matrix `V' = `V'[1..`nx', 1..`nx']
-		matrix `V' = `V'* e(df_r) / `=`df_r''
-		mat colnames `b' =`xname2'
-		mat colnames `V' =`xname2'
-		mat rownames `V' =`xname2'
-		*/
-
-		/*  3. I can use reghdfe (better for errors or for high dimensional N)*/
 		qui reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
 
 
@@ -253,7 +209,7 @@ program define innerregife, eclass
 		scalar `rmse' = e(rmse)
 
 		tempvar esample
-		gen `esample' = `touse'
+		qui gen `esample' = `touse'
 		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
 		ereturn scalar N = `N'
 		ereturn scalar df_r = `df_r'
@@ -263,59 +219,18 @@ program define innerregife, eclass
 		ereturn scalar mss = `mss'
 		ereturn scalar rmse = `rmse'	
 	}
-	else{
-		/* valid only if no missing */		
-		foreach var in `py' `px' {
-			tempvar new`var'
-			mata: transform(*info[1],*info[2], *info[3], *info[4], "`wvar'", "`var'", "`new`var''", `N', `T', `touse_first', `touse_last')
-			local newlist  `newlist' `new`var''
-		}
-		qui reg `newlist' `wt' in `touse_first'/`touse_last', nocons `options'
+	
 
-		local nx `:word count `px''		
-		tempname df_r
-		scalar `df_r' = e(df_r) - `df_a' -  (`N' + `T')*`dimension'
-		tempname df_m
-		scalar `df_m' = e(df_m)
-		tempname N
-		scalar `N' = e(N)
-		tempname rss
-		scalar `rss' = e(rss)
-		tempname F
-		scalar `F' = e(F)
-		tempname rank
-		scalar `rank' = e(rank)
-		tempname mss
-		scalar `mss' = e(mss)
-		tempname rmse
-		scalar `rmse' = e(rmse)
-		tempname b V
-		matrix `b' = e(b)
-		matrix `V' = e(V)
-		matrix `b' = `b'[1, 2..`nx']
-		matrix `V' = `V'[2..`nx', 2..`nx']* e(df_r) / `=`df_r''
-		mat colnames `b' =`xname'
-		mat colnames `V' =`xname'
-		mat rownames `V' =`xname'
-		tempvar esample
-		gen `esample' = `touse'
-		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
-		ereturn scalar df_r = `df_r'
-		ereturn scalar df_m = `df_m'
-		ereturn scalar N = `N'
-		ereturn scalar rss = `rss'
-		ereturn scalar F = `F'
-		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'	
-	}
-	ereturn scalar iter = `iter'
+	ereturn scalar iterations = `iter'
 	ereturn scalar convergence_error = `convergence_error'
+
+	ereturn local cmd regife
+	ereturn local depvar `y'
+	ereturn local indepvars `xname'
 	ereturn local converged `converged'
-	ereturn local id1 `id1'
-	ereturn local id2 `id2'
-	ereturn local f1 `id1gen'
-	ereturn local f2 `id2gen'
-	ereturn local d `dimension'
+	ereturn local id `id1'
+	ereturn local time `id2'
+	ereturn local dimension `dimension'
 	ereturn local title REGIFE  
 	ereturn local title2 Panel structure: `id1', `id2'
 	ereturn local title3 Factor dimension: `dimension' 
@@ -326,18 +241,18 @@ program define innerregife, eclass
 
 	if "`id1gen'"~=""{
 		forval d = 1/`dimension'{
-			gen `id1gen'`d' = `id1factor`d''
+			qui gen `id1gen'`d' = `id1factor`d''
 		}
 	}
 
 	if "`id2gen'"~=""{
 		forval d = 1/`dimension'{
-			gen `id2gen'`d' = `id2factor`d''
+			qui gen `id2gen'`d' = `id2factor`d''
 		}
 	}
 
 	if "`resgen'"~=""{
-		gen `resgen' = `res'
+		qui gen `resgen' = `res'
 	}
 
 end
@@ -421,7 +336,7 @@ mata:
 		loadings = (R * factors) :/ N
 
 
-	
+
 
 		MT = I(T) :- cross(factors', factors') / T 
 		MI = I(N) :- ((loadings :* Ws) * invsym(cross((loadings :* Ws), (loadings:* Ws))) * (loadings :* Ws)')

@@ -1,8 +1,8 @@
 /***************************************************************************************************
-
+version 0.1
 ***************************************************************************************************/
 program define regife, sortpreserve
-	version 12
+	version 12.0
 	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) [vce(string) Absorb(string) RESiduals(string) * ]
 
 
@@ -21,6 +21,12 @@ program define regife, sortpreserve
 		confirm new variable `residuals'
 	}
 
+	cap which reghdfe.ado
+	if _rc {
+		di as error "reghdfe.ado required: {stata ssc install reghdfe}"
+		exit 111
+	}
+
 
 	tokenize `absorb'
 	while "`1'" ~= ""{	 
@@ -36,10 +42,10 @@ program define regife, sortpreserve
 				exit 198
 			}
 
-			local absorbgroup `absorbgroup' `=regexs(2)'
+			local absorbvars `absorbvars' `=regexs(2)'
 		}
 		else{
-			local absorbgroup `absorbgroup' `1'
+			local absorbvars `absorbvars' `1'
 		}
 		macro shift
 	}
@@ -120,9 +126,10 @@ program define regife, sortpreserve
 	* syntax errors
 	if "`vce'" ~= ""{
 		local 0 `vce'
-		syntax anything [, reps(int 50) cluster(varname)]
+		syntax anything [, CLuster(varname) *]
 		if "`anything'" == "bootstrap"{
 			local bootstrap "yes"
+			local bootstrapoptions `options'
 		}
 	}
 
@@ -137,31 +144,33 @@ program define regife, sortpreserve
 
 
 	if "`bootstrap'" ~= "yes" {
-		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') resgen(`residuals') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbgroup(`absorbgroup') absorb(`absorb') vce(`vce')  `optionlist'
+		innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') resgen(`residuals') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb') vce(`vce')  `optionlist'
 	}
 	else{
 		/* get bstart */
-		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') resgen(`resgen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbgroup(`absorbgroup') absorb(`absorb')  `optionlist' 
+		qui innerregife, dimension(`dimension') id1(`id1') id2(`id2') id1gen(`id1gen') id2gen(`id2gen') resgen(`resgen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb')  `optionlist' 
 		tempname bstart 
 		matrix `bstart' = e(b)
 		if "`cluster'" == ""{
-			bootstrap,  reps(`reps') : ///
-			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorbgroup(`absorbgroup') absorb(`absorb') fast bstart(`bstart') `optionlist'
+			bootstrap,  `bootstrapoptions' : ///
+			innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars') fast bstart(`bstart') `optionlist'
 		}
 		else{
 			tempvar clusterid
 			tsset, clear
 			if "`id1'" == "`cluster'"{
-				bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-				innerregife, dimension(`dimension') id1(`clusterid') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorbgroup(`absorbgroup') absorb(`absorb') fast bstart(`bstart') `optionlist'
+				local absorbvars = substr("`absorbvars'", "`id1'", "`clusterid'")
+				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
+				innerregife, dimension(`dimension') id1(`clusterid') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast bstart(`bstart') `optionlist'
 			}
 			else if "`id2'" == "`cluster'"{
-				bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-				innerregife, dimension(`dimension') id1(`id1') id2(`clusterid') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorbgroup(`absorbgroup')  fast `optionlist'
+				local absorb = substr("`absorb'", "`id2'", "`clusterid'")
+				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
+				innerregife, dimension(`dimension') id1(`id1') id2(`clusterid') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast bstart(`bstart') `optionlist'
 			}
 			else{
-				bootstrap, reps(`reps') cluster(`cluster') idcluster(`clusterid'): ///
-				innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorbgroup(`absorbgroup')  fast  bstart(`bstart')`optionlist'
+				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
+				innerregife, dimension(`dimension') id1(`id1') id2(`id2') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast  bstart(`bstart')`optionlist'
 			}
 
 		}
