@@ -334,7 +334,8 @@ mata:
 			}
 		}
 		factors = factorsfull[., 1::d] :* sqrt(T)
-		loadings = (R * factors) :/ N
+		loadings = (R * factors) :/ T
+
 
 
 
