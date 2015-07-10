@@ -327,7 +327,7 @@ mata:
 			}
 			/* estimate coefficient of (Y- PCA(RES)) on b */
 			b2 = M * (Y :- tY)
-			error = sqrt(sum((b2 :- b1):^2))/length(b1)
+			error = max(abs(b2 :-b1))
 			b1 = b2
 			if (error < tolerance){
 				break

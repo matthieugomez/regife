@@ -1,6 +1,6 @@
 /***************************************************************************************************
-v 0.1 07/08 : first release
-v 0.2 : correct normalization
+v0.1 07/08: first release
+v0.2 07/09: correct normalization for loadings
 
 ***************************************************************************************************/
 program define regife, sortpreserve
