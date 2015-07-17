@@ -5,6 +5,37 @@ program define ife, eclass sortpreserve
 	/***************************************************************************************************
 	check syntax
 	***************************************************************************************************/
+
+	/* syntax absorb */
+	while (regexm("`absorb'", "[ ][ ]+")) {
+		local absorb : subinstr local absorb "  " " ", all
+	}
+	local absorb : subinstr local absorb " =" "=", all
+	local absorb : subinstr local absorb "= " "=", all
+	
+
+	tokenize `absorb'
+	while "`1'" ~= ""{	 
+		if regexm("`1'", "(.+)=(.+)"){
+			cap confirm new variable `=regexs(1)'
+			if _rc{
+				if _rc == 198{
+					di as error "variable `=regexs(1)' is not a valid name"
+				}
+				else if _rc == 110{
+					di as error "variable `=regexs(1)' already defined"
+				}
+				exit 198
+			}
+			local savefe "yes"
+			local absorbvars `absorbvars' `=regexs(2)'
+		}
+		else{
+			local absorbvars `absorbvars' `1'
+		}
+		macro shift
+	}
+
 	/* syntax factors */
 	if regexm("`factors'", "(.*),(.*)"){
 		local factors  = regexs(1)
@@ -33,13 +64,13 @@ program define ife, eclass sortpreserve
 			local id`i'gen `=regexs(1)'
 			local id`i' = regexs(2)
 			forval d = 1/`dimension'{
-				cap confirm new variable `id`i'gen'_`d'
+				cap confirm new variable `id`i'gen'`d'
 				if _rc{
 					if _rc == 198{
-						di as error "variable `id`i'gen'_`d' is not a valid name"
+						di as error "variable `id`i'gen'`d' is not a valid name"
 					}
 					else if _rc == 110{
-						di as error "variable `id`i'gen'_`d' already defined"
+						di as error "variable `id`i'gen'`d' already defined"
 					}
 					exit 198
 				}
@@ -91,19 +122,16 @@ program define ife, eclass sortpreserve
 			di as error "reghdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
 			exit 111
 		}
-		if "`residuals'" ~= ""{
-			qui reghdfe `varlist' `wt' if `touse', a(`absorb') residuals(`res')
-		}
-		else{
+		qui reghdfe `varlist' `wt' if `touse', a(`absorbvars') residuals(`res')
+		if "`savefe'" == "yes"{
 			qui reghdfe `varlist' `wt' if `touse', a(`absorb') 
-			predict `res', residuals
 		}
 		qui replace `touse' = e(sample)
 	}
 	else{
-		display "the variable is *not* demeaned before fitting a factor model. If you're interested in explaining the variance matrix, use absorb(id) or absorb(time)"
+		display as text "Variable `varlist' is not demeaned. Use absorb(id) or absorb(time)"
+		gen `res' = `varlist'
 	}
-
 
 	/* create group for i and t */
 	if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
@@ -150,7 +178,8 @@ program define ife, eclass sortpreserve
 	scalar `error' = r(error)
 	display as text "{lalign 26:Number of iterations = }" in ye %10.0fc `iter'
 	if `iter' == `maxiterations'{
-		display as error "{lalign 26:Convergence error = }" in ye %10.3gc `error'
+		display as text "The algorithm did not converge"
+		display as text "{lalign 26:Convergence error = }" in ye %4.3gc `error' 
 	}
 end
 
@@ -169,12 +198,15 @@ mata:
 		real matrix Y, U, V, Ws, Wm, R1, R2, na
 		real colvector s
 		string scalar name
-
 		index = st_varindex(y)
 		iindex = st_varindex(id)
 		tindex = st_varindex(time)
 		Y = J(N, T, .)
 		R1 = J(N, T, 0)
+		factorsfull = J(T, T, .)
+		variance = J(T, T, .)
+		variance2 = J(T, T, .)
+		S = J(T, 1, .)
 
 		if (strlen(w) > 0) {
 			Ws = J(N, T, .)
@@ -193,11 +225,12 @@ mata:
 			}
 		}
 
+
 		na = Y :==.
 		Y = editmissing(Y, 0)
 		error = 1
 		iter = 0
-
+	
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
@@ -208,34 +241,29 @@ mata:
 				}
 			}
 			iter = iter + 1
-			R2 = Y :+ na :* R1
+			R = Y :+ na :* R1
+			/* do PCA of residual */
 			if (strlen(w) > 0) {
-				R2 = R2 :* Ws
+				variance = cross(R, Ws, R)
 			}
-			_svd(R2, s, V)
-			if (strlen(w) > 0) {
-				R2 = R2 :/ Ws
+			else{
+				variance = cross(R, R)
 			}
-			U = R2[.,(1::d)] * diag(s[1::d]) 
-			R2 = U *  V[(1::d),.]
-			error = sqrt(sum((R2:-R1):^2)/ (cols(R1)*rows(R1)))
+			_symeigensystem(variance, factorsfull, S)
+			variance2 = cross(factorsfull[., 1::d]', factorsfull[., 1::d]')
+			R2 = R * variance2
+			error = max(abs(R2:-R1))
 			R1 = R2
 		}
+		factors = factorsfull[., 1::d] :* sqrt(T)
+		loadings = (R * factors) :/ T
+
 
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(error)", error)
 
-
-		if (strlen(gen) > 0){
-			idx = st_addvar("float", gen)
-			for (obs = first; obs <= last ; obs++) {    
-				st_store(obs, idx, R2[_st_data(obs, iindex), _st_data(obs, tindex)])
-			}	
-		}
-
-
 		if (strlen(residuals) > 0){
-			idx = st_addvar("float", residuals)
+			idx = st_addvar("double", residuals)
 			for (obs = first; obs <= last ; obs++) {    
 				st_store(obs, idx, Y[_st_data(obs, iindex), _st_data(obs, tindex)] - R2[_st_data(obs, iindex), _st_data(obs, tindex)])
 			}	
@@ -243,26 +271,26 @@ mata:
 
 
 		if (strlen(id1gen) > 0){
-			U = U :/ sqrt(T)
 			for (col = 1; col <= d; col++){
-				name =  id1gen + "_" + strofreal(col)
-				idx = st_addvar("float", name)
+				name =  id1gen  + strofreal(col)
+				idx = st_addvar("double", name)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, idx, U[_st_data(obs, iindex), col])
+					st_store(obs, idx, loadings[_st_data(obs, iindex), col])
 				} 
 			}
 		}
 
 		if (strlen(id2gen) > 0){
-			V = V:* sqrt(T)
 			for (col = 1; col <= d; col++){
-				name =  id2gen + "_" + strofreal(col)
-				idx = st_addvar("float", name)
+				name =  id2gen + strofreal(col)
+				idx = st_addvar("double", name)
 				for (obs = first; obs <= last ; obs++) { 
-					st_store(obs, idx, V[col, _st_data(obs, tindex)])
+					st_store(obs, idx, factors[_st_data(obs, tindex), col])
 				} 
 			}
 		}
+
+
 	}
 end
 

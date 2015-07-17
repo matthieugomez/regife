@@ -173,7 +173,6 @@ program define innerregife, eclass
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
 	}
 	else{
-		/*  Use reg instead of reghdfe. I could revert to reghdfe at some point but I need to use a higher tolerance for the case w/ only slopes (bad convergence) */ 
 		foreach factor in `id1factorlist'{
 			local id1factors `id1factors'	i.`id2'#c.`factor'
 		}
@@ -182,7 +181,6 @@ program define innerregife, eclass
 		}
 
 		qui cap reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
-		
 
 		tempname df_r
 		scalar `df_r' = e(df_r) 
@@ -291,6 +289,7 @@ mata:
 		R2 = J(N, T, 0)
 		factorsfull = J(T, T, .)
 		variance = J(T, T, .)
+		variance2 = J(T, T, .)
 		S = J(T, 1, .)
 		V = J(T, T, .)
 		iter = 0
