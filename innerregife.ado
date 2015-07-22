@@ -13,9 +13,14 @@ program define innerregife, eclass
 	Absorb(string) absorbvars(string) /// 
 	bstart(string) ///
 	TOLerance(real 1e-9) MAXIterations(int 10000) VERBose partial  ///
+	NOConstant ///
+	demean /// 
 	vce(string) ///
 	]
 
+	if `tolerance' < 1e-13{
+		display as error "Tolerance should be higher than 1e-13"
+	}
 	if "`vce'" ~= ""{
 		local vceoption vce(`vce')
 	}
@@ -69,15 +74,47 @@ program define innerregife, eclass
 			local px `px' ``prefix'`v''
 		}
 		local xname2 `xname'
+		local yhdfe `y'
+		local xhdfe `x'
 	}
 	else{
 		/* otherwise add constant to list of regressors */
 		scalar `df_a' = 0
-		local py `y'
-		tempvar cons
-		gen `cons' = 1
-		local px `cons' `x'
-		local xname2 _cons `xname'
+		if "`noconstant'" == "" {
+			if "`demean'" == "" {
+				local py `y'
+				local yhdfe `y'
+				local px `x'
+				local xhdfe `x'
+				tempvar cons
+				gen `cons' = 1
+				local xname2  _cons `xname'
+			}
+			else{
+				tempname prefix
+				tempvar `prefix'`y'
+				sum `y' `sumwt' if `touse', meanonly
+				gen `prefix'`y' = `y' - r(mean)
+				local py `prefix'`y'
+				local yhdfe `py'
+				foreach v in `x'{
+					tempvar `prefix'`v'
+					sum `v' `sumwt' if `touse', meanonly
+					qui gen  ``prefix'`v'' = `v' - r(mean)
+					local px `px' ``prefix'`v''
+					local xhdfe `px'
+				}
+				local xname2  `xname'
+			}
+		}
+		else{
+			local py `y'
+			local px `x'
+			local xname2 _cons `xname'
+			tempvar cons
+			gen `cons' = 1
+		}
+
 	}
 
 
@@ -180,7 +217,7 @@ program define innerregife, eclass
 			local id2factors `id2factors'	i.`id1'#c.`factor'
 		}
 
-		qui cap reghdfe `y' `cons' `x' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
+		qui cap reghdfe `yhdfe' `cons' `xhdfe' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
 
 		tempname df_r
 		scalar `df_r' = e(df_r) 
@@ -216,7 +253,7 @@ program define innerregife, eclass
 		ereturn scalar F = `F'
 		ereturn scalar mss = `mss'
 		ereturn scalar rmse = `rmse'	
-	
+
 	}
 	
 
