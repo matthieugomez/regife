@@ -49,6 +49,8 @@ program define innerregife, eclass
 		local id2factorlist `id2factorlist' `id2factor`d''
 	}
 
+	tempvar cons
+	gen `cons' = 1
 
 	tempname df_a
 	if "`absorb'" ~= ""{
@@ -83,12 +85,11 @@ program define innerregife, eclass
 		if "`noconstant'" == "" {
 			if "`demean'" == "" {
 				local py `y'
+				local px `cons' `x' 
 				local yhdfe `y'
-				local px `x'
-				local xhdfe `x'
-				tempvar cons
-				gen `cons' = 1
-				local xname2  _cons `xname'
+				local xhdfe `cons' `x' 
+				local xnamehdfe  _cons `xname'
+				local xnamefast _cons `xname'
 			}
 			else{
 				tempname prefix
@@ -104,15 +105,18 @@ program define innerregife, eclass
 					local px `px' ``prefix'`v''
 					local xhdfe `px'
 				}
-				local xname2  `xname'
+				local px `cons' `px' 
+				local xhdfe `cons' `xhdfe' 
+
+				local xnamehdfe  `xname'
+				local xnamefast `xname'
 			}
 		}
 		else{
 			local py `y'
 			local px `x'
-			local xname2 _cons `xname'
-			tempvar cons
-			gen `cons' = 1
+			local xnamehdfe  _cons `xname'
+			local xnamefast _cons `xname'			t
 		}
 
 	}
@@ -196,15 +200,14 @@ program define innerregife, eclass
 	gen `esample' = `touse'
 
 
-
 	if "`fast'" ~= ""{
-		local  p `: word count `xname2''
+		local  p `: word count `xnamefast''
 		tempname b V
 		matrix `b' = `bend'
 		matrix `V' = J(`p', `p', 0)
-		mat colnames `b' =`xname2' 
-		mat colnames `V' =`xname2'
-		mat rownames `V' =`xname2'
+		mat colnames `b' =`xnamefast' 
+		mat colnames `V' =`xnamefast'
+		mat rownames `V' =`xnamefast'
 		tempname df_r
 		scalar `df_r' = `obs' - `p'
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
@@ -217,16 +220,16 @@ program define innerregife, eclass
 			local id2factors `id2factors'	i.`id1'#c.`factor'
 		}
 
-		qui cap reghdfe `yhdfe' `cons' `xhdfe' `wt'  in `touse_first'/`touse_last',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
+		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
 
 		tempname df_r
 		scalar `df_r' = e(df_r) 
 		tempname b V
 		matrix `b' = e(b)
 		matrix `V' = e(V)	
-		mat colnames `b' =`xname2'
-		mat colnames `V' =`xname2'
-		mat rownames `V' =`xname2'
+		mat colnames `b' =`xnamehdfe'
+		mat colnames `V' =`xnamehdfe'
+		mat rownames `V' =`xnamehdfe'
 
 		tempname df_m
 		scalar `df_m' = e(df_m)
