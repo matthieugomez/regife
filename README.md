@@ -86,7 +86,7 @@ regife sales price, f(state year, 2) residuals(newres)
 
 - You can start the convergence at a given `beta` using `bstart`
 - id fixed effects or time fixed effects tend to speed up the convergence
-- The [same algorithm](https://github.com/matthieugomez/FixedEffectModels.jl) is available in Julia, and is 10x faster
+- A [similar algorithm](https://github.com/matthieugomez/PanelFactorModels.jl) is available in Julia, and is faster
 
 
 

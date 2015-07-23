@@ -92,6 +92,7 @@ program define innerregife, eclass
 				local xnamefast _cons `xname'
 			}
 			else{
+				* demean an dregress without constant
 				tempname prefix
 				tempvar `prefix'`y'
 				sum `y' `sumwt' if `touse', meanonly
@@ -105,9 +106,8 @@ program define innerregife, eclass
 					local px `px' ``prefix'`v''
 					local xhdfe `px'
 				}
-				local px `cons' `px' 
-				local xhdfe `cons' `xhdfe' 
-
+				local px `px' 
+				local xhdfe  `xhdfe' 
 				local xnamehdfe  `xname'
 				local xnamefast `xname'
 			}
@@ -115,10 +115,11 @@ program define innerregife, eclass
 		else{
 			local py `y'
 			local px `x'
-			local xnamehdfe  _cons `xname'
-			local xnamefast _cons `xname'			t
+			local yhdfe `y'
+			local xhdfe  `x' 
+			local xnamehdfe `xname'
+			local xnamefast `xname'		
 		}
-
 	}
 
 
@@ -200,6 +201,57 @@ program define innerregife, eclass
 	gen `esample' = `touse'
 
 
+	if "`fast'" == ""{
+		foreach factor in `id1factorlist'{
+			local id1factors `id1factors'	i.`id2'#c.`factor'
+		}
+		foreach factor in `id2factorlist'{
+			local id2factors `id2factors'	i.`id1'#c.`factor'
+		}
+
+		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption' keepsingletons
+		if _rc ~= 0{
+			display as error "internall call to reghdfe failed. Returning the estimate without standard errors"
+			local fast "fast"
+		}
+		else{
+			tempname df_r
+			scalar `df_r' = e(df_r) 
+			tempname b V
+			matrix `b' = e(b)
+			matrix `V' = e(V)	
+			mat colnames `b' =`xnamehdfe'
+			mat colnames `V' =`xnamehdfe'
+			mat rownames `V' =`xnamehdfe'
+
+			tempname df_m
+			scalar `df_m' = e(df_m)
+			tempname N
+			scalar `N' = e(N)
+			tempname rss
+			scalar `rss' = e(rss)
+			tempname F
+			scalar `F' = e(F)
+			tempname rank
+			scalar `rank' = e(rank)
+			tempname mss
+			scalar `mss' = e(mss)
+			tempname rmse
+			scalar `rmse' = e(rmse)
+
+			tempvar esample
+			qui gen `esample' = `touse'
+			ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
+			ereturn scalar N = `N'
+			ereturn scalar df_r = `df_r'
+			ereturn scalar df_m = `df_m'
+			ereturn scalar rss = `rss'
+			ereturn scalar F = `F'
+			ereturn scalar mss = `mss'
+			ereturn scalar rmse = `rmse'	
+		}
+	}
+
 	if "`fast'" ~= ""{
 		local  p `: word count `xnamefast''
 		tempname b V
@@ -212,52 +264,7 @@ program define innerregife, eclass
 		scalar `df_r' = `obs' - `p'
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
 	}
-	else{
-		foreach factor in `id1factorlist'{
-			local id1factors `id1factors'	i.`id2'#c.`factor'
-		}
-		foreach factor in `id2factorlist'{
-			local id2factors `id2factors'	i.`id1'#c.`factor'
-		}
 
-		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption'
-
-		tempname df_r
-		scalar `df_r' = e(df_r) 
-		tempname b V
-		matrix `b' = e(b)
-		matrix `V' = e(V)	
-		mat colnames `b' =`xnamehdfe'
-		mat colnames `V' =`xnamehdfe'
-		mat rownames `V' =`xnamehdfe'
-
-		tempname df_m
-		scalar `df_m' = e(df_m)
-		tempname N
-		scalar `N' = e(N)
-		tempname rss
-		scalar `rss' = e(rss)
-		tempname F
-		scalar `F' = e(F)
-		tempname rank
-		scalar `rank' = e(rank)
-		tempname mss
-		scalar `mss' = e(mss)
-		tempname rmse
-		scalar `rmse' = e(rmse)
-
-		tempvar esample
-		qui gen `esample' = `touse'
-		ereturn post `b' `V' `wt', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
-		ereturn scalar N = `N'
-		ereturn scalar df_r = `df_r'
-		ereturn scalar df_m = `df_m'
-		ereturn scalar rss = `rss'
-		ereturn scalar F = `F'
-		ereturn scalar mss = `mss'
-		ereturn scalar rmse = `rmse'	
-
-	}
 	
 
 	ereturn scalar iterations = `iter'
@@ -624,5 +631,6 @@ program define Chi2test
 		as res %`c4wfmt's "."
 	}
 end
+
 
 

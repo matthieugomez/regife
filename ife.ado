@@ -119,7 +119,7 @@ program define ife, eclass sortpreserve
 	if "`absorb'" ~= ""{
 		cap which reghdfe.ado
 		if _rc {
-			di as error "reghdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
+			di as error "reghdfe.ado required when using multiple absorb variables: {stata ssc install reghdfe}"
 			exit 111
 		}
 		qui reghdfe `varlist' `wt' if `touse', a(`absorbvars') residuals(`res')
