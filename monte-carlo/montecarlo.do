@@ -79,3 +79,28 @@ forval j = 1/3{
 postclose `postname'
 use `filename', clear
 
+drop _all
+set obs 100
+gen N = _n
+gen lambda1 = rnormal()
+gen lambda2 = rnormal()
+gen x = lambda1 + lambda2 + rnormal()
+tempfile temp
+save `temp'
+
+
+drop _all
+set obs 20
+gen T = _n
+gen F1 = rnormal()
+gen F2 = rnormal()
+gen w = F1 + F2 + rnormal()
+cross using `temp'
+
+gen eta_1 = rnormal()
+gen eta_2 = rnormal()
+gen X1 = 3 + 4 * lambda1  + lambda2 * F2 
+gen Y = 3 + 3 * X1 +  lambda1 * F1 +  lambda2 * F2 + lambda1 + lambda2 + F1 + F2 + rnormal()
+
+ife X1, a(N) f(N T, 2) res(resx)
+ivreg Y (X1 = res)

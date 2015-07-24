@@ -346,10 +346,8 @@ mata:
 			iter = iter + 1
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){
-					if (iter == 100){
-						stata(`"display as text "each .=100 iterations""')
-					}
-					stata(`"display "." _c"')
+					stata(`"display "current estimate:"')
+					b1
 				}
 			}
 			/* construct residual matrix */
