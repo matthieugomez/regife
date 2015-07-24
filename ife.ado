@@ -1,5 +1,5 @@
 program define ife, eclass sortpreserve
-	version 13
+	version 12.0
 	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string)   [Absorb(string) GENerate(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
