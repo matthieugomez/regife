@@ -62,7 +62,7 @@ program define innerregife, eclass
 		}
 		tempvar sample
 		tempname prefix
-		qui hdfe `y' `x'  `wt' if `touse', a(`absorbvars') gen(`prefix') sample(`sample')
+		qui hdfe `y' `x'   if `touse' `wt', a(`absorbvars') gen(`prefix') sample(`sample')
 		scalar `df_a' = e(df_a)
 		local touse `sample'
 		tempvar `prefix'`y'

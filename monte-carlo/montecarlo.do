@@ -79,28 +79,40 @@ forval j = 1/3{
 postclose `postname'
 use `filename', clear
 
-drop _all
-set obs 100
-gen N = _n
-gen lambda1 = rnormal()
-gen lambda2 = rnormal()
-gen x = lambda1 + lambda2 + rnormal()
-tempfile temp
-save `temp'
 
+tempfile filename
+tempname postname
+postfile `postname' str10 estimator beta using `filename', replace
 
-drop _all
-set obs 20
-gen T = _n
-gen F1 = rnormal()
-gen F2 = rnormal()
-gen w = F1 + F2 + rnormal()
-cross using `temp'
+forval i = 1/100{
+	drop _all
+	set obs 100
+	gen N = _n
+	gen lambda1 = rnormal()^2 + 3
+	gen lambda2 = 0.2 * lambda1^2 + rnormal()
+	tempfile temp
+	save `temp'
 
-gen eta_1 = rnormal()
-gen eta_2 = rnormal()
-gen X1 = 3 + 4 * lambda1  + lambda2 * F2 
-gen Y = 3 + 3 * X1 +  lambda1 * F1 +  lambda2 * F2 + lambda1 + lambda2 + F1 + F2 + rnormal()
+	drop _all
+	set obs 20
+	gen T = _n
+	gen F1 = rnormal() + 1
+	gen F2 = 0.8 * F1 + rnormal() + 2
+	cross using `temp'
 
-ife X1, a(N) f(N T, 2) res(resx)
-ivreg Y (X1 = res)
+	gen x = rnormal()
+	gen X1 = lambda1 + lambda1 * cos(F1) + lambda1 * (F1 * rnormal()^2) + rnormal()
+	gen Z =  lambda1 * F1 
+	gen Y = 3 + 3 * X1 + 10 * Z + rnormal()
+
+	ife X1, a(N) f(N T, 1) res(resX1)
+	reghdfe Y resX1, a(N)
+	post `postname' ("3step") (_b[resX1])
+	regife Y X1 , a(N) f(N T, 1)
+	post `postname' ("regife") (_b[X1])
+}
+
+postclose `postname'
+use `filename', clear
+sumup b, by(estimator)
+
