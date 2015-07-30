@@ -26,9 +26,6 @@ program define innerregife, eclass
 	}
 
 
-	* until reghdfe 3.0 is on ssc
-
-
 	/* tempname */
 	tempvar g1 g2 res
 	tempname b V
@@ -123,19 +120,6 @@ program define innerregife, eclass
 	}
 
 
-	/* count number of observations (after hdfe since it reads the absorb syntax) */
-	if "`fast'" == ""{
-		if "`id1'" ~= "`: char _dta[_IDpanel]'" | "`id2'" == "`: char _dta[_TStvar]'"{
-			sort `touse' `id1' `id2'
-			cap bys `touse' `id1' `id2' : assert _N == 1 if `touse'
-			if _rc{
-				di as error "repeated observations for `id2' within `id1'"
-				exit 451
-			}
-		}
-	}
-
-
 	/* create group for i and t */
 	qui bys `touse' `id1' : gen double `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
@@ -164,7 +148,7 @@ program define innerregife, eclass
 		exit 0
 	}
 
-	cap assert (`N'+`T') * `dimension' < _N
+	cap assert `N' < _N & `T' <_N
 	if _rc{
 		di as error "More levels of FE than observations!"
 		exit 3498
@@ -184,7 +168,7 @@ program define innerregife, eclass
 
 
 	* iterate 
-	mata: info = iteration("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1factorlist'", "`id2factorlist'", "`res'", "`verbose'")
+	mata: info = iteration_gs("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1factorlist'", "`id2factorlist'", "`res'", "`verbose'")
 	tempname bend
 	matrix `bend' = r(b)
 	local iter = r(N)
@@ -270,7 +254,7 @@ program define innerregife, eclass
 		ereturn post `b' `V', depname(`yname') obs(`obs') esample(`esample') dof(`=`df_r'')
 	}
 
-	
+
 
 	ereturn scalar iterations = `iter'
 	ereturn scalar convergence_error = `convergence_error'
@@ -314,7 +298,11 @@ helper functions
 set matastrict on
 mata:
 
-	pointer iteration(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
+
+
+
+
+	void iteration_svd(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
 		string scalar name
@@ -384,14 +372,9 @@ mata:
 		}
 		factors = factorsfull[., 1::d] :* sqrt(T)
 		loadings = (R * factors) :/ T
-
-
-
-
-
 		MT = I(T) :- cross(factors', factors') / T 
 		MI = I(N) :- ((loadings :* Ws) * invsym(cross((loadings :* Ws), (loadings:* Ws))) * (loadings :* Ws)')
-		
+
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')
@@ -414,37 +397,145 @@ mata:
 		for (obs = first; obs <= last ; obs++) { 
 			st_store(obs, idx , res[obs-first + 1])
 		}
-		return(&MT, &MI, &index, &Ws)
 	}
 
 
 
-
-
-	void transform(real matrix MT, real matrix MI, real matrix index, real matrix Ws, string scalar w, string scalar var, string scalar newvar, real scalar N, real scalar T, real scalar first, real scalar last){
-		real matrix VARm
-		real vector VAR
-		real scalar obs, idx
-		VAR = st_data((first::last), var)
-		VARm = J(N, T, 0)
-		for (obs = 1; obs <= last - first + 1; obs++) {  
-			VARm[|(index)[obs, .]|]= VAR[obs]
-		}
+	void iteration_gs(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
+		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
+		real scalar iindex, tindex, windex, iter, obs, col, idx, error
+		string scalar name
+		real colvector s, b1, b2
+		idindex = st_data(first::last, id)
+		timeindex = st_data(first::last, time)
+		st_view(Y, (first::last), y)
+		st_view(X, (first::last), x)
+		b1 = st_matrix(bname)'
 		if (strlen(w) > 0) {
-			VARm =  ((MI * (VARm :* Ws) )* MT) :/Ws
+			windex = st_varindex(w)
+			st_view(W, (first::last), w)
+			M = invsym(quadcross(X, W, X))* X' * diag(W)		
+			Ws = J(N, 1, 1)
+			for (obs = 1; obs <= last - first + 1; obs++) {    
+				Ws[|index[obs, 1]|] = W[obs]
+			}
+			Ws = sqrt(Ws)
 		}
 		else{
-			VARm =  MI * VARm * MT
+			Ws = J(N, 1, 1)
+			M = invsym(quadcross(X, X)) * X'
 		}
-		for (obs = 1; obs <= last - first + 1; obs++) {  
-			VAR[obs] = VARm[|index[obs, .]|]
+
+		factors = J(T, d, 0.1)
+		loadings = J(N, d, 0.1)
+		idstorage1 = J(N, 1, 0)
+		idstorage2 = J(N, 1, 0)
+		timestorage1 = J(T, 1, 0)
+		timestorage2 = J(T, 1, 0)
+		U = J(d, d, .)
+		Dx = J(d, 1, .)
+		invDx = J(d, 1, .)
+
+		V = J(d, d, .)
+		iter = 0
+		error = 1
+		while ((maxiterations == 0) | (iter < maxiterations)){
+			/* construct residuals */
+			iter = iter + 1
+			/* construct residuals  */
+			tY = Y :-  X * b1
+			for (r = 1 ; r <= d; r++) {
+				for (obs = 1; obs <= last - first + 1; obs++) { 
+					idi = idindex[obs]
+					timei = timeindex[obs]   
+					factor = factors[timei, r]
+					idstorage1[idi]= idstorage1[idi] + tY[obs] * factor
+					idstorage2[idi]= idstorage2[idi] + factor^2
+				}
+				for (i = 1 ; i <= N; i++){
+					loadings[i, r] = idstorage1[i] / idstorage2[i]
+					idstorage1[i] = 0
+					idstorage2[i] = 0
+				}
+				for (obs = 1; obs <= last - first + 1; obs++) {    
+					idi = idindex[obs]
+					timei = timeindex[obs]   
+					loading = loadings[idi, r]
+					timestorage1[timei]= timestorage1[timei] + tY[obs] * loading
+					timestorage2[timei]= timestorage2[timei] + loading^2
+				}
+				for (i = 1 ; i <= T; i++){
+					factors[i, r] = timestorage1[i] / timestorage2[i]
+					timestorage1[i] = 0
+					timestorage2[i] = 0
+				}
+				for (obs = 1; obs <= last - first + 1 ; obs++) {    
+					idi = idindex[obs]
+					timei = timeindex[obs]   
+					tY[i] = tY[i] - loadings[idi, r] * factors[timei, r]
+				}
+			}
+			for (obs = 1; obs <= last - first + 1  ; obs++) {  
+				idi = idindex[obs]
+				timei = timeindex[obs]   
+				sum = 0
+				for (r= 1 ; r <= d; r++) {
+					sum = sum + loadings[idi, r] * factors[timei, r]
+				}
+				tY[obs] = Y[obs] - sum
+			}
+			/* estimate coefficient of (Y- PCA(RES)) on b */
+			b2 = M * tY
+			error = max(abs(b2 :-b1))
+			b1 = b2
+			if (error < tolerance){
+				break
+			}
 		}
-		idx = st_addvar("double", newvar)
-		st_store(first::last, idx , VAR)
+
+		/* scale factors and loadings */
+		_symeigensystem(cross(factors, factors), U, Dx)
+
+		for (i = 1; i <= d; i++){
+			Dx[i] = sqrt(abs(Dx[i]))
+		}
+		for (i = 1; i <= d; i++){
+			invDx[i] = 1/Dx[i]
+		}
+		scaledloadings = loadings * U * diag(Dx)
+		_symeigensystem(cross(scaledloadings, scaledloadings), V, Dx2)
+		loadings = loadings * U * diag(Dx) * V
+		factors = factors *  U * diag(invDx) * V
+
+
+
+		st_numscalar("r(N)", iter)
+		st_numscalar("r(convergence_error)", error)
+		st_matrix("r(b)",b1')
+		names = tokens(id1factorlist)
+		for (r = 1; r <= d; r++){
+			idx = st_addvar("double", names[r])
+			for (obs = 1; obs <= last - first + 1 ; obs++) { 
+				st_store(obs, idx , loadings[idindex[obs - first + 1], r])
+			} 
+		}
+		names = tokens(id2factorlist)
+		for (r = 1; r <= d; r++){
+			idx = st_addvar("double", names[r])
+			for (obs = first; obs <= last ; obs++) { 
+				st_store(obs, idx , factors[timeindex[obs - first + 1], r])
+			} 
+		}
+		res = Y :- tY :- X * b2
+		idx = st_addvar("double", resgen)
+		for (obs = first; obs <= last ; obs++) { 
+			st_store(obs, idx , res[obs-first + 1])
+		}
 	}
 
-end
 
+
+end
 /***************************************************************************************************
 slightly modified version from reghdfe.ado
 ***************************************************************************************************/

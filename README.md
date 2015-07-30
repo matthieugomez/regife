@@ -23,13 +23,12 @@ Impose id or time fixed effect with the option `absorb`.
 ```
 regife sales price, f(state year, 2)  a(state year)
 ```
-In my experience, the convergence is much faster when id or time fixed effects are specified.
 
 
 
 
 ### Unbalanced Panel
-The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. In this case,  standard errors should be estimated by bootstrap.
+The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. 
 
 
 
@@ -45,8 +44,7 @@ Except for bootstrap, the `vce` option is simply passed to the command regressin
 In presence of correlation, the estimate for beta isbiased (See Theorem 3 in Bai 2009). Instead of computing robust standard errors, you may want to add enough factors until residuals are i.i.d.
 
 
-
-In my experience, it is wiser to bootstrap the standard errors, [especially for small T](monte-carlo/result.png)
+For small T, it seems wiser to bootstrap the standard errors, (see the following [monte carlo results](monte-carlo/result.png).
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
@@ -82,11 +80,11 @@ regife sales price, f(state year, 2) residuals(newres)
 
 
 ### Speed
-`regife` can be quite slow since typically, a high number of iterations is required until convergence. 
+`regife` can be quite slow, and typically, a high number of iterations is required until convergence. 
 
 - You can start the convergence at a given `beta` using `bstart`
-- id fixed effects or time fixed effects tend to speed up the convergence
-- A [similar algorithm](https://github.com/matthieugomez/PanelFactorModels.jl) is available in Julia, and is faster
+- The more correlated X and the factor model are, the slower the Gauss-Seidel method. A first consequence is that regife is slow in these cases when estimates are far from the OLS estimates. A second consequence is that adding id or time fixed effects makes the convergence faster.
+- I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
 
@@ -120,16 +118,6 @@ The command `ife` estimates a factor model for some variable
 
 
 
-
-# cce (Pesaran 2006)
-
-The command `ccemg` and `ccep` correspond respectively to Pesaran (2006) Common Correlated Effects Mean Group estimator (CCEMG) and Common Correlated Effects Pooled estimator (CCEP). 
-
-Like with year fixed effect, these commands generate the mean value of regressors at each time accross groups. and add them as regressor. After this step,
-- `ccemg` runs the new model within each id and averages the betas accross all ids. 
-- `ccep` runs the new model on the pooled sample, interacting the newly created variables with group dummies. 
-
-`ccep` relies on `reghdfe` and is generally faster than `ccemg`.
 
 
 
