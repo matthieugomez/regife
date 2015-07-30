@@ -2,7 +2,12 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects using a least square estimate (Bai 2009)
+The command `regife` estimates models with interactive fixed effects using a least square estimate (Bai 2009).
+
+For an observation `i`, denote `(jλ(i), jf(i))` the associated pair (id x time).  This package estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
+
+![minimization](img/minimization.png)
+
 
 
 ### Syntax
@@ -60,14 +65,14 @@ regife sales price, f(state year, 2) residuals(newres)
 
 ## FAQ
 #### Why should I use regife instead of reg/areg/reghdfe ?
-Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. In contrast, 
+Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. 
 
 
 Another intuition is to consider the model 
 ```
 Y = X'b + g(i, t) + e
 ```
-Fixed effect correspond to a first order taylor approximation of `g`. Interactive fixed effects correspond to a second order expansion of `g`
+Fixed effect correspond to a first order taylor approximation of `g`. Interactive fixed effects correspond to a second order expansion of `g`.
 
 #### Can't I just replace X by the residuals of X on a factor model?
 
