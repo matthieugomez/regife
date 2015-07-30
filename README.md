@@ -64,22 +64,22 @@ regife sales price, f(state year, 2) residuals(newres)
 
 
 ## FAQ
-#### Why should I use regife instead of reg/areg/reghdfe ?
+#### When should I use interactive fixed effects?
 Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. 
 
 
-Another intuition is to consider the model 
+Another intuition for the difference is to consider the model 
 ```
-Y = X'b + g(i, t) + e
+Y = X'b + g(i, t) + ϵ
 ```
-Fixed effect correspond to a first order taylor approximation of `g`. Interactive fixed effects correspond to a second order expansion of `g`.
+Fixed effect correspond to a first order taylor approximation of `g`, while interactive fixed effects correspond to a second order expansion of `g`.
 
-#### Can't I just replace X by the residuals of X on a factor model?
+#### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
+In the case of fixed effect models, one can obtain consistent estimate by demeaning regressors first, and use the residuals in the original regression.
+In contrast, this method would not give consistent estimate for beta in the case of interactive fixed effects. The intuition is that this kind of method (i.e. the FWL theorem)relies on linear projections, but factor models are non linears.
 
-This method would not give consistent estimate for beta (in contrast to the fixed effect case). This kind of method relies on linear projections (i.e. the FWL theorem), but factor models are non linears.
 
-
-#### How are the standard errors computed?
+#### How are standard errors computed?
 Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
 
 [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
@@ -93,7 +93,7 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
 #### What if I don't know the number of factors?
-As proven in Moon Weidner (2015), adding irrelevant factors does not threaten consistency of the interactive fixed effect estimates. The intuition is that they behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
+As proven in Moon Weidner (2015), overestimating the number of factors does not threaten the consistency of the interactive fixed effect estimates. The intuition is that irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
 
 #### Does regife implement the bias correction term in Bai (2009)?
 In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that derives the correction term). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
@@ -105,18 +105,18 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 
 - You can start the convergence at a given `beta` using `bstart`
 - You can decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The more correlated X and the factor model are, the slower the Gauss-Seidel method. This means that regife is slow exactly in these cases when the interactive fixed effect estimates are far from the OLS estimates. This also means that adding id or time fixed effects makes the convergence faster.
+- The Gauss-Seidel method requires a high number of iteration when X and the factor model are very correlated : `regife` tends to be slow exactly in these cases where the interactive fixed effect estimates substantially differ from the OLS estimates. Adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
 #### Why does regife return different estimates than the phht package in R?
-The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. However, this package computes wrong estimates in the case without fixed effects. 
+The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
 
 
 
 
 # ife
-The command `ife` estimates a factor model for some variable
+The command `ife` estimates a factor model for a unique variable
 
 - Contrary to Stata `pca` command, 
  - `ife` handles dataset in long forms (ie `ife` works on datasets where each row represents an id and a time, rather than datasets where each row represents an id and each variable a time).
