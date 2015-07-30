@@ -10,6 +10,10 @@ For an observation `i`, denote `(jλ(i), jf(i))` the associated pair (id x time)
 
 
 
+
+
+
+
 ### Syntax
 
 `regife` requires a formula and the option `factors`, composed of an id variable, a time variable, and the dimension.
@@ -142,23 +146,13 @@ The command `ife` estimates a factor model for a unique variable
  ife sale, a(state year) f(state year, 2) residuals(p30_res)
  ```
 
-
-
-
-
-
-
-
 # Installation
-
-### regife
 `regife` is now available on ssc
 ```
 ssc install regife
 ```
 
-
-To install the latest version  on Github 
+To install the latest version  on Github (or the one including ife)
 - with Stata13+
 	```
 	net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
