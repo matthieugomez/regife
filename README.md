@@ -2,7 +2,7 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects (Bai 2009). 
+The command `regife` estimates models with interactive fixed effects using a least square estimate (Bai 2009)
 
 
 ### Syntax
@@ -59,9 +59,23 @@ regife sales price, f(state year, 2) residuals(newres)
 
 
 ## FAQ
+#### Why should I use regife instead of reg/areg/reghdfe ?
+Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. In contrast, 
+
+
+Another intuition is to consider the model 
+```
+Y = X'b + g(i, t) + e
+```
+Fixed effect correspond to a first order taylor approximation of `g`. Interactive fixed effects correspond to a second order expansion of `g`
+
+#### Can't I just replace X by the residuals of X on a factor model?
+
+This method would not give consistent estimate for beta (in contrast to the fixed effect case). This kind of method relies on linear projections (i.e. the FWL theorem), but factor models are non linears.
+
 
 #### How are the standard errors computed?
-Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai 2009.
+Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
 
 [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
 ```
@@ -76,7 +90,7 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 #### What if I don't know the number of factors?
 As proven in Moon Weidner (2015), adding irrelevant factors does not threaten consistency of the interactive fixed effect estimates. The intuition is that they behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
 
-#### Does regife implement the bias correction term in Bai(2008)?
+#### Does regife implement the bias correction term in Bai (2009)?
 In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that derives the correction term). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
 
 
