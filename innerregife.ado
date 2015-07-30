@@ -5,7 +5,7 @@
 program define innerregife, eclass 
 	version 12
 	syntax , Dimension(int) [ /// 
-	id1(string) id2(string) id1gen(string) id2gen(string) /// 
+	id(string) time(string) idgen(string) timegen(string) /// 
 	resgen(string) ///
 	y(string) x(string) xname(string) yname(string) /// 
 	touse(string)  wvar(string) wtype(string)  ///
@@ -18,40 +18,36 @@ program define innerregife, eclass
 	vce(string) ///
 	]
 
-	if `tolerance' < 1e-13{
-		display as error "Tolerance should be higher than 1e-13"
-	}
-	if "`vce'" ~= ""{
-		local vceoption vce(`vce')
-	}
-
 
 	/* tempname */
 	tempvar g1 g2 res
 	tempname b V
 
 
+	if `tolerance' < 1e-13{
+		display as error "Tolerance should be higher than 1e-13"
+	}
+	if "`vce'" ~= ""{
+		local vceoption vce(`vce')
+	}
 	if ("`wtype'"!=""){
 		local wt [`wtype'=`wvar']
 		local wvar = "`wvar'"
 		local sumwt [aw=`wvar']
 	}
 
-
-
+	/* create list of new id and time name */
 	forval d = 1/`dimension'{
-		tempvar id1factor`d'
-		local id1factorlist `id1factorlist' `id1factor`d''
-		tempvar id2factor`d'
-		local id2factorlist `id2factorlist' `id2factor`d''
+		tempvar idfactor`d'
+		local idfactorlist `idfactorlist' `idfactor`d''
+		tempvar timefactor`d'
+		local timefactorlist `timefactorlist' `timefactor`d''
 	}
 
-	tempvar cons
-	gen `cons' = 1
 
 	tempname df_a
 	if "`absorb'" ~= ""{
-		/* case of high dimensional fixed effects */
+		/* case of high dimensional fixed effects : demean variables*/
 		cap which hdfe.ado
 		if _rc {
 			di as error "hdfe.ado required when using multiple absorb variables: {stata ssc install hdfe}"
@@ -78,36 +74,16 @@ program define innerregife, eclass
 	}
 	else{
 		/* otherwise add constant to list of regressors */
+		tempvar cons
+		gen `cons' = 1
 		scalar `df_a' = 0
 		if "`noconstant'" == "" {
-			if "`demean'" == "" {
-				local py `y'
-				local px `cons' `x' 
-				local yhdfe `y'
-				local xhdfe `cons' `x' 
-				local xnamehdfe  _cons `xname'
-				local xnamefast _cons `xname'
-			}
-			else{
-				* demean an dregress without constant
-				tempname prefix
-				tempvar `prefix'`y'
-				sum `y' `sumwt' if `touse', meanonly
-				gen `prefix'`y' = `y' - r(mean)
-				local py `prefix'`y'
-				local yhdfe `py'
-				foreach v in `x'{
-					tempvar `prefix'`v'
-					sum `v' `sumwt' if `touse', meanonly
-					qui gen  ``prefix'`v'' = `v' - r(mean)
-					local px `px' ``prefix'`v''
-					local xhdfe `px'
-				}
-				local px `px' 
-				local xhdfe  `xhdfe' 
-				local xnamehdfe  `xname'
-				local xnamefast `xname'
-			}
+			local py `y'
+			local px `cons' `x' 
+			local yhdfe `y'
+			local xhdfe `cons' `x' 
+			local xnamehdfe  _cons `xname'
+			local xnamefast _cons `xname'
 		}
 		else{
 			local py `y'
@@ -121,33 +97,31 @@ program define innerregife, eclass
 
 
 	/* create group for i and t */
-	qui bys `touse' `id1' : gen double `g1' = _n == 1 if `touse'
+	qui bys `touse' `id' : gen double `g1' = _n == 1 if `touse'
 	qui replace `g1' = sum(`g1') if `touse'
 	local N = `g1'[_N]
 
-	qui bys `touse' `id2'  : gen double `g2' = _n == 1 if `touse'
+	qui bys `touse' `time'  : gen double `g2' = _n == 1 if `touse'
 	qui replace `g2' = sum(`g2') if `touse'
 	local T = `g2'[_N]
-
 
 	qui count if `touse' 
 	local touse_first = _N - r(N) + 1
 	local touse_last = _N
 	local obs = `touse_last'-`touse_first' + 1
 
+
+	/* some checks */
 	cap assert `T' >= `dimension'
 	if _rc{
 		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
 		exit 0
 	}
-
-
 	cap assert `N' >= `T'
 	if _rc{
 		di as error "The first factor should have higher cardinality than the second factor"
 		exit 0
 	}
-
 	cap assert `N' < _N & `T' <_N
 	if _rc{
 		di as error "More levels of FE than observations!"
@@ -155,8 +129,7 @@ program define innerregife, eclass
 	}
 
 
-	/* algorithim */
-	* first reg  
+	* initialize b
 	if "`bstart'" ==""{
 		qui _regress `py' `px' `wt' in `touse_first'/`touse_last', nocons
 		matrix `b' = e(b)
@@ -166,9 +139,8 @@ program define innerregife, eclass
 	}
 
 
-
 	* iterate 
-	mata: info = iteration_gs("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`id1factorlist'", "`id2factorlist'", "`res'", "`verbose'")
+	mata: info = iteration_gs("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idfactorlist'", "`timefactorlist'", "`res'", "`verbose'")
 	tempname bend
 	matrix `bend' = r(b)
 	local iter = r(N)
@@ -191,16 +163,17 @@ program define innerregife, eclass
 
 
 	if "`fast'" == ""{
-		foreach factor in `id1factorlist'{
-			local id1factors `id1factors'	i.`id2'#c.`factor'
+		/* return the result from reghdfe adding i.id#c.factors and i.time#c.loading */
+		foreach factor in `idfactorlist'{
+			local idfactors `idfactors'	i.`time'#c.`factor'
 		}
-		foreach factor in `id2factorlist'{
-			local id2factors `id2factors'	i.`id1'#c.`factor'
+		foreach factor in `timefactorlist'{
+			local timefactors `timefactors'	i.`id'#c.`factor'
 		}
 
-		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption' keepsingletons
+		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `idfactors' `timefactors')  tol(`tolerance') `vceoption' keepsingletons
 		if _rc ~= 0{
-			display as error "internall call to reghdfe failed. Returning the estimate without standard errors. Error code: `=_rc'"
+			display as error "internall call to reghdfe failed (error code: `=_rc'). Returning the estimate without standard errors". 
 			local fast "fast"
 		}
 		else{
@@ -242,6 +215,7 @@ program define innerregife, eclass
 	}
 
 	if "`fast'" ~= ""{
+		/* return the estimate without standard errors */
 		local  p `: word count `xnamefast''
 		tempname b V
 		matrix `b' = `bend'
@@ -263,26 +237,27 @@ program define innerregife, eclass
 	ereturn local depvar `y'
 	ereturn local indepvars `xname'
 	ereturn local converged `converged'
-	ereturn local id `id1'
-	ereturn local time `id2'
+	ereturn local id `id'
+	ereturn local time `time'
 	ereturn local dimension `dimension'
 	ereturn local title REGIFE  
-	ereturn local title2 Panel structure: `id1', `id2'
+	ereturn local title2 Panel structure: `id', `time'
 	ereturn local title3 Factor dimension: `dimension' 
 	ereturn local title4 Converged: `converged'
 
 	Header
 	ereturn display
 
-	if "`id1gen'"~=""{
+	/* save factors, loadings and residuals */
+	if "`idgen'"~=""{
 		forval d = 1/`dimension'{
-			qui gen `id1gen'`d' = `id1factor`d''
+			qui gen `idgen'`d' = `idfactor`d''
 		}
 	}
 
-	if "`id2gen'"~=""{
+	if "`timegen'"~=""{
 		forval d = 1/`dimension'{
-			qui gen `id2gen'`d' = `id2factor`d''
+			qui gen `timegen'`d' = `timefactor`d''
 		}
 	}
 
@@ -302,7 +277,7 @@ mata:
 
 
 
-	void iteration_svd(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
+	void iteration_svd(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idfactorlist, string scalar timefactorlist, string scalar resgen, string scalar verbose){
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
 		string scalar name
@@ -378,14 +353,14 @@ mata:
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')
-		names = tokens(id1factorlist)
+		names = tokens(idfactorlist)
 		for (col = 1; col <= d; col++){
 			idx = st_addvar("double", names[col])
 			for (obs = first; obs <= last ; obs++) { 
 				st_store(obs, idx , loadings[index[obs - first + 1, 1], col])
 			} 
 		}
-		names = tokens(id2factorlist)
+		names = tokens(timefactorlist)
 		for (col = 1; col <= d; col++){
 			idx = st_addvar("double", names[col])
 			for (obs = first; obs <= last ; obs++) { 
@@ -401,7 +376,7 @@ mata:
 
 
 
-	void iteration_gs(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar id1factorlist, string scalar id2factorlist, string scalar resgen, string scalar verbose){
+	void iteration_gs(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idfactorlist, string scalar timefactorlist, string scalar resgen, string scalar verbose){
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
 		real scalar iindex, tindex, windex, iter, obs, col, idx, error
 		string scalar name
@@ -512,14 +487,14 @@ mata:
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
 		st_matrix("r(b)",b1')
-		names = tokens(id1factorlist)
+		names = tokens(idfactorlist)
 		for (r = 1; r <= d; r++){
 			idx = st_addvar("double", names[r])
 			for (obs = 1; obs <= last - first + 1 ; obs++) { 
 				st_store(obs, idx , loadings[idindex[obs - first + 1], r])
 			} 
 		}
-		names = tokens(id2factorlist)
+		names = tokens(timefactorlist)
 		for (r = 1; r <= d; r++){
 			idx = st_addvar("double", names[r])
 			for (obs = first; obs <= last ; obs++) { 
