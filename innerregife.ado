@@ -164,6 +164,11 @@ program define innerregife, eclass
 		exit 0
 	}
 
+	cap assert (`N'+`T') * `dimension' < _N
+	if _rc{
+		di as error "More levels of FE than observations!"
+		exit 3498
+	}
 
 
 	/* algorithim */
@@ -211,7 +216,7 @@ program define innerregife, eclass
 
 		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `id1factors' `id2factors')  tol(`tolerance') `vceoption' keepsingletons
 		if _rc ~= 0{
-			display as error "internall call to reghdfe failed. Returning the estimate without standard errors"
+			display as error "internall call to reghdfe failed. Returning the estimate without standard errors. Error code: `=_rc'"
 			local fast "fast"
 		}
 		else{
