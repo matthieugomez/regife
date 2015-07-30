@@ -63,7 +63,7 @@ regife sales price, f(state year, 2) residuals(newres)
 #### How are the standard errors computed?
 Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai 2009.
 
-Following [monte carlo results](monte-carlo/result.png), it seems wiser to bootstrap the standard errors in particular for small T.
+[Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
@@ -73,26 +73,27 @@ To obtain standard errors by block bootstrap:
 regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
-#### Does regife implement the bias correction term?
-In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
+#### What if I don't know the number of factors?
+As proven in Moon Weidner (2015), adding irrelevant factors does not threaten consistency of the interactive fixed effect estimates. The intuition is that they behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
+
+#### Does regife implement the bias correction term in Bai(2008)?
+In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that derives the correction term). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
 
 
-#### Why is regife slow?
+#### How can I speedup regife?
 
 `regife` can be quite slow: typically, a high number of iterations is required until convergence. 
 
 - You can start the convergence at a given `beta` using `bstart`
-- You can use the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The more correlated X and the factor model are, the slower the Gauss-Seidel method. A first consequence is that regife is slow in these cases when estimates are far from the OLS estimates. A second consequence is that adding id or time fixed effects makes the convergence faster.
+- You can decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
+- The more correlated X and the factor model are, the slower the Gauss-Seidel method. This means that regife is slow exactly in these cases when the interactive fixed effect estimates are far from the OLS estimates. This also means that adding id or time fixed effects makes the convergence faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
-#### Why do I obtain different estimates than the phht package in R?
-The phht package in R allows to compute the interactive fixed effect estimate. Howeever, this package computes wrong estimates in the case without fixed effects. 
+#### Why does regife return different estimates than the phht package in R?
+The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. However, this package computes wrong estimates in the case without fixed effects. 
 
 
-#### What if I don't know the number of factors?
-As proven in Moon Weidner (2015), adding irrelevant factors does not threaten consistency. The intuition is that they behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
 
 
 # ife
