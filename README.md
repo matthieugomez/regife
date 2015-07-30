@@ -75,12 +75,12 @@ Y = X'b + g(i, t) + ϵ
 Fixed effect correspond to a first order taylor approximation of `g`, while interactive fixed effects correspond to a second order expansion of `g`.
 
 #### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
-In the case of fixed effect models, one can obtain consistent estimate by demeaning regressors first, and use the residuals in the original regression.
-In contrast, this method would not give consistent estimate for beta in the case of interactive fixed effects. The intuition is that this kind of method (i.e. the FWL theorem)relies on linear projections, but factor models are non linears.
+For models with fixed effect, one can obtain consistent estimate by (i) demeaning regressors and (ii) use the residuals in the original regression.
+In contrast, this method does not work i n models with interactive fixed effects. The intuition is that this kind of method (based on the FWL theorem) relies on linear projections, but factor models are non linears.
 
 
 #### How are standard errors computed?
-Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
+The standard errors are the ones obtained by a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
 
 [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
 ```
@@ -101,11 +101,11 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 
 #### How can I speedup regife?
 
-`regife` can be quite slow: typically, a high number of iterations is required until convergence. 
+`regife` can be quite slow: tl convergence. 
 
 - You can start the convergence at a given `beta` using `bstart`
 - You can decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The Gauss-Seidel method requires a high number of iteration when X and the factor model are very correlated : `regife` tends to be slow exactly in these cases where the interactive fixed effect estimates substantially differ from the OLS estimates. Adding id or time fixed effects generally makes the convergence much faster.
+- The Gauss-Seidel method requires a high number of iteration especially when X and the factor model are very correlated : this means `regife` is slow in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
