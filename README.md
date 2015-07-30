@@ -15,56 +15,33 @@ regife sales price, f(state year, 3)
 ```
 
 
+### Options
 
-
-### Absorb
-Impose id or time fixed effect with the option `absorb`. 
-
-```
-regife sales price, f(state year, 2)  a(state year)
-```
-
-
-
-
-### Unbalanced Panel
-The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. 
-
-
-
-### Standard errors
+#### Standard errors
 The `vce` option allows to compute robust standard errors 
 
 ```
 regife sales price, f(state year, 2) a(state year) vce(cluster state) 
 ```
 
-Except for bootstrap, the `vce` option is simply passed to the command regressing y on x and covariates of the form `i.id#c.year` and `i.year#c.id` (as discussed in section 6 of of Bai 2009).
 
-In presence of correlation, the estimate for beta isbiased (See Theorem 3 in Bai 2009). Instead of computing robust standard errors, you may want to add enough factors until residuals are i.i.d.
+#### Absorb
+Impose id or time fixed effect with the option `absorb`. 
 
-
-For small T, it seems wiser to bootstrap the standard errors, (see the following [monte carlo results](monte-carlo/result.png).
 ```
-regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
+regife sales price, f(state year, 2)  a(state year)
 ```
-
-To obtain standard errors by block bootstrap:
-```
-regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
-```
+#### Unbalanced Panel
+The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. 
 
 
-### Weights
+
+
+
+#### Weights
 Weights are supported but should be constant within id
 
-
-### Convergence
-The iteration algorithm can be modified using the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-
-
-
-### Save factors
+#### Save factors
 Save loadings and/or factors by specifying new variable names using `=`
 
 ```
@@ -79,13 +56,43 @@ regife sales price, f(state year, 2) residuals(newres)
 ```
 
 
-### Speed
-`regife` can be quite slow, and typically, a high number of iterations is required until convergence. 
+
+
+## FAQ
+
+#### How are the standard errors computed?
+Except for bootstrap, the `vce` option is simply passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai 2009.
+
+Following [monte carlo results](monte-carlo/result.png), it seems wiser to bootstrap the standard errors in particular for small T.
+```
+regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
+```
+
+To obtain standard errors by block bootstrap:
+```
+regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
+```
+
+#### Does regife implement the bias correction term?
+In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
+
+
+#### Why is regife slow?
+
+`regife` can be quite slow: typically, a high number of iterations is required until convergence. 
 
 - You can start the convergence at a given `beta` using `bstart`
+- You can use the option `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
 - The more correlated X and the factor model are, the slower the Gauss-Seidel method. A first consequence is that regife is slow in these cases when estimates are far from the OLS estimates. A second consequence is that adding id or time fixed effects makes the convergence faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
+
+#### Why do I obtain different estimates than the phht package in R?
+The phht package in R allows to compute the interactive fixed effect estimate. Howeever, this package computes wrong estimates in the case without fixed effects. 
+
+
+#### What if I don't know the number of factors?
+As proven in Moon Weidner (2015), adding irrelevant factors does not threaten consistency. The intuition is that they behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
 
 
 # ife

@@ -92,6 +92,9 @@ program define regife, sortpreserve
 		confirm var `id`i''
 	}
 
+	local id `id1'
+	local time `id2'
+
 	if ("`weight'"!=""){
 		local wtype `weight'
 		local wvar  `=subinstr("`exp'","=","", .)'

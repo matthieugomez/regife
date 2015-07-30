@@ -140,7 +140,7 @@ program define innerregife, eclass
 
 
 	* iterate 
-	mata: info = iteration_gs("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idfactorlist'", "`timefactorlist'", "`res'", "`verbose'")
+	mata: info = iteration_svd("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idfactorlist'", "`timefactorlist'", "`res'", "`verbose'")
 	tempname bend
 	matrix `bend' = r(b)
 	local iter = r(N)
@@ -272,10 +272,6 @@ helper functions
 ***************************************************************************************************/
 set matastrict on
 mata:
-
-
-
-
 
 	void iteration_svd(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idfactorlist, string scalar timefactorlist, string scalar resgen, string scalar verbose){
 		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
@@ -414,35 +410,38 @@ mata:
 		V = J(d, d, .)
 		iter = 0
 		error = 1
+		initial_iter = 30
 		while ((maxiterations == 0) | (iter < maxiterations)){
 			/* construct residuals */
 			iter = iter + 1
 			/* construct residuals  */
 			tY = Y :-  X * b1
 			for (r = 1 ; r <= d; r++) {
-				for (obs = 1; obs <= last - first + 1; obs++) { 
-					idi = idindex[obs]
-					timei = timeindex[obs]   
-					factor = factors[timei, r]
-					idstorage1[idi]= idstorage1[idi] + tY[obs] * factor
-					idstorage2[idi]= idstorage2[idi] + factor^2
-				}
-				for (i = 1 ; i <= N; i++){
-					loadings[i, r] = idstorage1[i] / idstorage2[i]
-					idstorage1[i] = 0
-					idstorage2[i] = 0
-				}
-				for (obs = 1; obs <= last - first + 1; obs++) {    
-					idi = idindex[obs]
-					timei = timeindex[obs]   
-					loading = loadings[idi, r]
-					timestorage1[timei]= timestorage1[timei] + tY[obs] * loading
-					timestorage2[timei]= timestorage2[timei] + loading^2
-				}
-				for (i = 1 ; i <= T; i++){
-					factors[i, r] = timestorage1[i] / timestorage2[i]
-					timestorage1[i] = 0
-					timestorage2[i] = 0
+				for (inner_iter  = 1 ; inner_iter <= initial_iter; inner_iter++){
+					for (obs = 1; obs <= last - first + 1; obs++) { 
+						idi = idindex[obs]
+						timei = timeindex[obs]   
+						factor = factors[timei, r]
+						idstorage1[idi]= idstorage1[idi] + tY[obs] * factor
+						idstorage2[idi]= idstorage2[idi] + factor^2
+					}
+					for (i = 1 ; i <= N; i++){
+						loadings[i, r] = idstorage1[i] / idstorage2[i]
+						idstorage1[i] = 0
+						idstorage2[i] = 0
+					}
+					for (obs = 1; obs <= last - first + 1; obs++) {    
+						idi = idindex[obs]
+						timei = timeindex[obs]   
+						loading = loadings[idi, r]
+						timestorage1[timei]= timestorage1[timei] + tY[obs] * loading
+						timestorage2[timei]= timestorage2[timei] + loading^2
+					}
+					for (i = 1 ; i <= T; i++){
+						factors[i, r] = timestorage1[i] / timestorage2[i]
+						timestorage1[i] = 0
+						timestorage2[i] = 0
+					}
 				}
 				for (obs = 1; obs <= last - first + 1 ; obs++) {    
 					idi = idindex[obs]
@@ -450,6 +449,7 @@ mata:
 					tY[i] = tY[i] - loadings[idi, r] * factors[timei, r]
 				}
 			}
+			initial_iter = 1
 			for (obs = 1; obs <= last - first + 1  ; obs++) {  
 				idi = idindex[obs]
 				timei = timeindex[obs]   
