@@ -71,13 +71,6 @@ regife sales price, f(state year, 2) residuals(newres)
 #### When should I use interactive fixed effects?
 Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. 
 
-
-Another intuition for the difference is to consider the model 
-```
-Y = X'b + g(i, t) + ϵ
-```
-Fixed effect correspond to a first order taylor approximation of `g`, while interactive fixed effects correspond to a second order expansion of `g`.
-
 #### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
 For models with fixed effect, one can obtain consistent estimate by (i) demeaning regressors and (ii) use the residuals in the original regression.
 In contrast, this method does not work i n models with interactive fixed effects. The intuition is that this kind of method (based on the FWL theorem) relies on linear projections, but factor models are non linears.
