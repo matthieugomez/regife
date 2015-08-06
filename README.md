@@ -19,7 +19,7 @@ The algorithm returns the set of coefficients `β`, of factors `(f1, .., fr)` an
 
 
 
-### Syntax
+## Syntax
 
 `regife` requires a formula and the option `factors`, that specifies the id variable, the time variable, and the dimension:
 
@@ -28,8 +28,6 @@ insheet "data/cigar.csv", clear
 regife sales price, f(state year, 3)
 ```
 
-
-### Options
 
 
 
