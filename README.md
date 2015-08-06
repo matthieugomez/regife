@@ -108,7 +108,7 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
 
 
-#### Is the interactive fixed effect estimate used?
+#### Where was the interactive fixed effect estimate used?
 Hagedorn, Karahan, Movskii *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects* (2015)
 Hagedorn, Karahan, Movskii *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* (2015)
 Totty *The Effect of Minimum Wages on Employment: A Factor Model Approach* (2015)
