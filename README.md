@@ -110,7 +110,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 
 - Start the convergence at a given `beta` using `bstart`.
 - Decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The algorithm used in `regife` tends to require a lot of iterations when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
+- The algorithm used in `regife` requires a lot of iterations when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
