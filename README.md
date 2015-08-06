@@ -2,9 +2,9 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects using the least square estimate (Bai 2009).
+The command `regife` estimates models with interactive fixed effects folloing Bai (2009).
 
-For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  This command estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
+For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
 
 ![minimization](img/minimization.png)
 
