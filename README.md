@@ -4,12 +4,12 @@
 
 The command `regife` estimates models with interactive fixed effects following Bai (2009).
 
-For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` in the model
+For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates models of the form 
 
 ![model](img/model.png)
 
 
-The algorithm finds these estimates by a least square estimate:
+The algorithm returns the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that minimize
 
 ![minimization](img/minimization.png)
 
@@ -21,7 +21,7 @@ The algorithm finds these estimates by a least square estimate:
 
 ### Syntax
 
-`regife` requires a formula and the option `factors`, composed of an id variable, a time variable, and the dimension.
+`regife` requires a formula and the option `factors`, that specifies the id variable, the time variable, and the dimension:
 
 ```
 insheet "data/cigar.csv", clear
@@ -34,7 +34,11 @@ regife sales price, f(state year, 3)
 
 
 #### Absorb
-Impose id or time fixed effect with the option `absorb`. 
+You can impose id and/or time fixed effect by estimating models of the form
+
+![model](img/femodel.png)
+
+Just use the option `absorb` along with the option `factors`:
 
 ```
 regife sales price, f(state year, 2)  a(state year)
@@ -42,9 +46,7 @@ regife sales price, f(state year, 2)  a(state year)
 
 
 
-This estimates models of the form
 
-![model](img/femodel.png)
 
 #### Unbalanced Panel
 The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. 
