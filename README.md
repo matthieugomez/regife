@@ -45,11 +45,6 @@ The command handles unbalanced panels (ie missing observation for a given id, ti
 Weights are supported but should be constant within id
 
 #### Standard errors
-The `vce` option allows to compute robust standard errors 
-
-```
-regife sales price, f(state year, 2) a(state year) vce(cluster state) 
-```
 
 
 #### Save factors
@@ -73,7 +68,7 @@ regife sales price, f(state year, 2) residuals(newres)
 #### When should I use interactive fixed effects?
 Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. 
 
-You can find examples of such models in the following article
+You can find such models in the following articles:
 
 - Eberhardt, Helmers, Strauss (2013) *Do spillovers matter when estimating private returns to R&D?*
 - Hagedorn, Karahan, Movskii (2015) *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects*
@@ -81,9 +76,9 @@ You can find examples of such models in the following article
 - Totty (2015) *The Effect of Minimum Wages on Employment: A Factor Model Approach*
 
 #### How are standard errors computed?
-The standard errors are the ones obtained by a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
+The `vce` option is passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This way of computing standard errors is hinted in section 6 of of Bai (2009).
 
-[Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
+That being said, personal [Monte carlo evidence](monte-carlo/result.png) suggest standard errors should be bootstrapped for small T.
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
