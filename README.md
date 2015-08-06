@@ -2,9 +2,14 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects folloing Bai (2009).
+The command `regife` estimates models with interactive fixed effects following Bai (2009).
 
-For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
+For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` in the model
+
+![model](img/model.png)
+
+
+The algorithm finds these estimates by a least square estimate:
 
 ![minimization](img/minimization.png)
 
@@ -34,6 +39,13 @@ Impose id or time fixed effect with the option `absorb`.
 ```
 regife sales price, f(state year, 2)  a(state year)
 ```
+
+
+
+This estimates models of the form
+
+![model](img/femodel.png)
+
 #### Unbalanced Panel
 The command handles unbalanced panels (ie missing observation for a given id, time) as described in the appendix of Bai 2009. 
 
@@ -43,9 +55,6 @@ The command handles unbalanced panels (ie missing observation for a given id, ti
 
 #### Weights
 Weights are supported but should be constant within id
-
-#### Standard errors
-
 
 #### Save factors
 Save loadings and/or factors by specifying new variable names using `=`
@@ -111,8 +120,10 @@ In contrast, this method does not work with models with interactive fixed effect
 
 
 # Installation
-`regife` is now available on ssc
+`regife` is now available on ssc. It requires reghdfe
+
 ```
+ssc install reghdfe
 ssc install regife
 ```
 
