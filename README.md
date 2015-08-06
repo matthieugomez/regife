@@ -115,7 +115,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 
 
 #### Can't `β` be simply estimated by replacing X with the residuals of X on a factor model?
-For models with fixed effect, an equivalent way to obtain β is to first demean regressors within groups and then use their residuals in the original regression.
+For models with fixed effect, an equivalent way to obtain β is to first demean regressors within groups and then use their residuals instead of the original regressors.
 In contrast, this method does not work with models with interactive fixed effects. While fixed effects are linear projections (so that the Frisch-Waugh-Lovell theorem holds), factor models are non linear projections.
 
 
