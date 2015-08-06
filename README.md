@@ -2,9 +2,9 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with interactive fixed effects using a least square estimate (Bai 2009).
+The command `regife` estimates models with interactive fixed effects using the least square estimate (Bai 2009).
 
-For an observation `i`, denote `(jλ(i), jf(i))` the associated pair (id x time).  This package estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
+For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  This package estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
 
 ![minimization](img/minimization.png)
 
@@ -106,14 +106,6 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 
 #### Why does this command return different estimates than the phht package in R?
 The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
-
-
-#### Where was the interactive fixed effect estimate used?
-Hagedorn, Karahan, Movskii *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects* (2015)
-
-Hagedorn, Karahan, Movskii *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* (2015)
-
-Totty *The Effect of Minimum Wages on Employment: A Factor Model Approach* (2015)
 
 
 # Installation
