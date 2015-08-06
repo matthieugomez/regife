@@ -90,23 +90,21 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
 #### What if I don't know the number of factors?
-As proven in Moon Weidner (2015), overestimating the number of factors does not threaten the consistency of the interactive fixed effect estimates. The intuition is that irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
+As proven in Moon Weidner (2015), overestimating the number of factors does not threaten the consistency of the interactive fixed effect estimates: irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
 
 #### Does regife implement the bias correction term in Bai (2009)?
 In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that derives the correction term). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
 
 
-#### How can I speedup regife?
+#### How can I speedup the convergence?
 
-`regife` can be quite slow: tl convergence. 
-
-- You can start the convergence at a given `beta` using `bstart`
-- You can decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The Gauss-Seidel method requires a high number of iteration especially when X and the factor model are very correlated : this means `regife` is slow in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
+- Start the convergence at a given `beta` using `bstart`.
+- Decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
+- The iteration loop in `regife` is slow when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
-#### Why does regife return different estimates than the phht package in R?
+#### Why does this command return different estimates than the phht package in R?
 The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
 
 
