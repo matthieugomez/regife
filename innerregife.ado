@@ -156,6 +156,8 @@ program define innerregife, eclass
 
 	if "`converged'" == "false"{
 		display as text "The algorithm did not converge : convergence error is" in ye %4.3gc `convergence_error' in text " (tolerance" in ye %4.3gc `tolerance' in text")"
+		display as text "Allow for more iterations with the option maxiter"
+
 	}
 
 	tempvar esample
