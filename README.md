@@ -78,7 +78,7 @@ You can find such models in the following articles:
 #### How are standard errors computed?
 The `vce` option is passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This way of computing standard errors is hinted in section 6 of of Bai (2009).
 
-That being said, personal [Monte carlo evidence](monte-carlo/result.png) suggest standard errors should be bootstrapped for small T.
+That being said, personal [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 ```
@@ -89,28 +89,23 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 ```
 
 #### What if I don't know the number of factors?
-As proven in Moon Weidner (2015), overestimating the number of factors does not threaten the consistency of the interactive fixed effect estimates: irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb is to add factors until the result is not sensible to the number of factors.
+As proven in Moon Weidner (2015), overestimating the number of factors still returns consistent estimates: irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb may be to check that your result does not move when you add more factors.
 
 #### Does regife implement the bias correction term in Bai (2009)?
-In presence of correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that derives the correction term). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
+In presence of cross or time correlation, the estimate for beta is biased (See Theorem 3 in Bai 2009 that also derives the correction term in special cases). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
 
 
 #### How can I speedup the convergence?
 
 - Start the convergence at a given `beta` using `bstart`.
 - Decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
-- The iteration loop in `regife` is slow when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
+- The algorithm used in `regife` tends to require a lot of iterations when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
 #### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
-For models with fixed effect, one can obtain consistent estimate by (i) demeaning regressors and (ii) use the residuals in the original regression.
-In contrast, this method does not work i n models with interactive fixed effects. The intuition is that this kind of method (based on the FWL theorem) relies on linear projections, but factor models are non linears.
-
-
-
-#### Why does this command return different estimates than the phht package in R?
-The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
+For models with fixed effect, one can obtain consistent estimate by demeaning regressors and then using the residuals in the original regression.
+In contrast, this method does not work with models with interactive fixed effects. These projection methods (based on the FWL theorem) rely on linear projections, but factor models are non linear projections.
 
 
 # Installation
