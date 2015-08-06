@@ -110,7 +110,9 @@ The phht package in R also allows to compute the interactive fixed effect estima
 
 #### Where was the interactive fixed effect estimate used?
 Hagedorn, Karahan, Movskii *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects* (2015)
+
 Hagedorn, Karahan, Movskii *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* (2015)
+
 Totty *The Effect of Minimum Wages on Employment: A Factor Model Approach* (2015)
 
 
