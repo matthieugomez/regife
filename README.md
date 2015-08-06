@@ -76,7 +76,13 @@ You can find such models in the following articles:
 - Totty (2015) *The Effect of Minimum Wages on Employment: A Factor Model Approach*
 
 #### How are standard errors computed?
-The `vce` option is passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This way of computing standard errors is hinted in section 6 of of Bai (2009).
+The `vce` option is passed to a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. You can use any `vce` option availbe in `reghdfe`. This way of computing standard errors is hinted in section 6 of of Bai (2009).
+
+
+```
+regife sales price, f(state year, 2) a(state year) vce(cluster state) 
+```
+
 
 That being said, personal [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
 ```
