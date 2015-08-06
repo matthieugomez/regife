@@ -108,34 +108,11 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 The phht package in R also allows to compute the interactive fixed effect estimate in the case of balanced panels. This package returns wrong estimates in the case without fixed effects. 
 
 
+#### Is the interactive fixed effect estimate used?
+Hagedorn, Karahan, Movskii *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects* (2015)
+Hagedorn, Karahan, Movskii *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* (2015)
+Totty *The Effect of Minimum Wages on Employment: A Factor Model Approach* (2015)
 
-
-# ife
-The command `ife` estimates a factor model for a unique variable
-
-- Contrary to Stata `pca` command, 
- - `ife` handles dataset in long forms (ie `ife` works on datasets where each row represents an id and a time, rather than datasets where each row represents an id and each variable a time).
- - `ife` handles unbalanced panel data : in the first step, missing observations are set to zero and a factor model is estimated.  In a second step, missing observations are replaced by the predicted value of the factor model, etc until convergence. This corresponds to the algorithm described in Stock and Watson (1998).
-
-
-- To save loadings and/or the factors, use the lhs of `=`
- ```
- ife sale, f(loading_state=state factor_year=year)  d(2)
- ```
-
- If you want to obtain residuals, you can directly use the `residuals` option
-
- ```
- ife sale, f(state year, 2) residuals(p30_res)
- ```
-
-- By default, `ife` does not demean the variable. If you want to estimate a PCA, you probably want to demean the variable with respect to id and/or time. To do so, use the option `absorb`. 
-
-
- ```
- ife sale, a(fe_state = state fe_year = year) f(factors = state loading = year, 2) 
- ife sale, a(state year) f(state year, 2) residuals(p30_res)
- ```
 
 # Installation
 `regife` is now available on ssc
