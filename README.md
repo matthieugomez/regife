@@ -75,12 +75,10 @@ Time fixed effects assume aggregate shocks impact each individual in the same wa
 
 You can find examples of such models in the following article
 
-Eberhardt, Helmers, Strauss (2013) *Do spillovers matter when estimating private returns to R&D?*
-Hagedorn, Karahan, Movskii (2015) *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects*
-
-Hagedorn, Karahan, Movskii (2015) *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* 
-
-Totty (2015) *The Effect of Minimum Wages on Employment: A Factor Model Approach*
+- Eberhardt, Helmers, Strauss (2013) *Do spillovers matter when estimating private returns to R&D?*
+- Hagedorn, Karahan, Movskii (2015) *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects*
+- Hagedorn, Karahan, Movskii (2015) *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* 
+- Totty (2015) *The Effect of Minimum Wages on Employment: A Factor Model Approach*
 
 #### How are standard errors computed?
 The standard errors are the ones obtained by a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
