@@ -9,7 +9,7 @@ For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `
 ![model](img/model.png)
 
 
-The algorithm returns the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that minimize
+This algorithm returns the set of coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that minimize
 
 ![minimization](img/minimization.png)
 
@@ -57,13 +57,13 @@ The command handles unbalanced panels (ie missing observation for a given id, ti
 Weights are supported but should be constant within id
 
 #### Save factors
-Save loadings and/or factors by specifying new variable names using `=`
+Save loadings and/or factors by specifying new variable names at the left hand side of `=`
 
 ```
-regife sales price, a(fe = state) f(loading_state=state factor_year=year, 2) 
+regife sales price, a(fe_state=state) f(ife_state=state ife_year=year, 2) 
 ```
 
-To obtain residuals, directly use the option `residuals`
+To save residuals, use the option `residuals`
 
 
 ```
