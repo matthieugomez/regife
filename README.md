@@ -9,7 +9,7 @@ For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `
 ![model](img/model.png)
 
 
-These models are simply estimated by least square, i.e. by finding the coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that minimize
+The model is estimated by least square, i.e. by finding the coefficients `β`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that minimize
 
 ![minimization](img/minimization.png)
 
