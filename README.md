@@ -84,7 +84,7 @@ regife sales price, f(state year, 2) a(state year) vce(cluster state)
 ```
 
 
-That being said, personal [Monte carlo evidence](monte-carlo/result.png) suggest to bootstrap the standard errors for small T.
+That being said, personal [Monte carlo evidence](monte-carlo/montecarlo.do) suggest to bootstrap the standard errors for small T.
 ```
 regife sales price, f(state year, 2)  vce(bootstrap, reps(100))
 regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
