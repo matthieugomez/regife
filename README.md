@@ -103,7 +103,7 @@ regife sales price, f(state year, 2)  vce(bootstrap, cluster(state))
 As proven in Moon Weidner (2015), overestimating the number of factors still returns consistent estimates: irrelevant factors behave similarly to irrelevant covariates in a traditional OLS. A rule of thumb may be to check that your estimate stays constant when you add more factors.
 
 #### Does regife implement the bias correction term in Bai (2009)?
-In presence of cross or time correlation (beyond the factor structure), the estimate for beta is biased (See Theorem 3 in Bai 2009 that also derives the correction term in special cases). However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
+In presence of cross or time correlation (beyond the factor structure), the estimate for beta is biased: see Theorem 3 in Bai 2009, which derives the correction term in special cases. However, `regife` does not implement any correction. You may want to add enough factors until residuals are approximately i.i.d.
 
 
 #### How can I speedup the convergence?
