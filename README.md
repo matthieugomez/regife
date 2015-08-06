@@ -116,7 +116,7 @@ In contrast, this method does not work with models with interactive fixed effect
 ssc install regife
 ```
 
-To install the latest version  on Github (or the one including ife)
+To install the latest version  on Github 
 - with Stata13+
 	```
 	net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
