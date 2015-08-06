@@ -4,7 +4,7 @@
 
 The command `regife` estimates models with interactive fixed effects using the least square estimate (Bai 2009).
 
-For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  This package estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
+For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  This command estimates the set of coefficients `beta`, of factors `(f1, .., fr)` and of loadings `(λ1, ..., λr)` that solve
 
 ![minimization](img/minimization.png)
 
@@ -26,12 +26,6 @@ regife sales price, f(state year, 3)
 
 ### Options
 
-#### Standard errors
-The `vce` option allows to compute robust standard errors 
-
-```
-regife sales price, f(state year, 2) a(state year) vce(cluster state) 
-```
 
 
 #### Absorb
@@ -49,6 +43,14 @@ The command handles unbalanced panels (ie missing observation for a given id, ti
 
 #### Weights
 Weights are supported but should be constant within id
+
+#### Standard errors
+The `vce` option allows to compute robust standard errors 
+
+```
+regife sales price, f(state year, 2) a(state year) vce(cluster state) 
+```
+
 
 #### Save factors
 Save loadings and/or factors by specifying new variable names using `=`
@@ -71,10 +73,14 @@ regife sales price, f(state year, 2) residuals(newres)
 #### When should I use interactive fixed effects?
 Time fixed effects assume aggregate shocks impact each individual in the same way. In contrast, interactive fixed effects allow individuals to have different exposure to aggregate shocks. 
 
-#### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
-For models with fixed effect, one can obtain consistent estimate by (i) demeaning regressors and (ii) use the residuals in the original regression.
-In contrast, this method does not work i n models with interactive fixed effects. The intuition is that this kind of method (based on the FWL theorem) relies on linear projections, but factor models are non linears.
+You can find examples of such models in the following article
 
+Eberhardt, Helmers, Strauss (2013) *Do spillovers matter when estimating private returns to R&D?*
+Hagedorn, Karahan, Movskii (2015) *Unemployment Benefits and Unemployment in the Great Recession: The Role of Macro Effects*
+
+Hagedorn, Karahan, Movskii (2015) *The impact of unemployment benefit extensions on employment: the 2014 employment miracle?* 
+
+Totty (2015) *The Effect of Minimum Wages on Employment: A Factor Model Approach*
 
 #### How are standard errors computed?
 The standard errors are the ones obtained by a regression of y on x and covariates of the form `i.id#c.year` and `i.year#c.id`. This method is hinted in section 6 of of Bai (2009).
@@ -102,6 +108,12 @@ In presence of correlation, the estimate for beta is biased (See Theorem 3 in Ba
 - Decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
 - The iteration loop in `regife` is slow when interactive fixed effects are correlated with the RHS variable. This means `regife` is slow exactly in those cases where the interactive fixed effect estimates substantially differ from the OLS estimates. For the same reason, adding id or time fixed effects generally makes the convergence much faster.
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
+
+
+#### Can't I just remove the endogeneity by replacing X with the residuals of X on a factor model?
+For models with fixed effect, one can obtain consistent estimate by (i) demeaning regressors and (ii) use the residuals in the original regression.
+In contrast, this method does not work i n models with interactive fixed effects. The intuition is that this kind of method (based on the FWL theorem) relies on linear projections, but factor models are non linears.
+
 
 
 #### Why does this command return different estimates than the phht package in R?
