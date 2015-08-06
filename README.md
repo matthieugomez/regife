@@ -114,7 +114,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 - I've written a [similar command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is more than 100x faster
 
 
-#### Can't I just estimate `β` by replacing X with the residuals of X on a factor model?
+#### Can't `β` be simply estimated by replacing X with the residuals of X on a factor model?
 For models with fixed effect, one can obtain consistent estimate by demeaning regressors and then using the residuals in the original regression.
 In contrast, this method does not work with models with interactive fixed effects. These projection methods (based on the FWL theorem) rely on linear projections, but factor models are non linear projections.
 
