@@ -55,7 +55,11 @@ program define innerregife, eclass
 		}
 		tempvar sample
 		tempname prefix
-		qui hdfe `y' `x'   if `touse' `wt', a(`absorbvars') gen(`prefix') sample(`sample')
+		cap qui hdfe `y' `x'   if `touse' `wt', a(`absorbvars') gen(`prefix') sample(`sample')
+		if _rc ~= 0{
+				display as error "internall call to hdfe failed (error code: `=_rc'). This may be due to implicit categorical variables / time series variables in the model (i.e. i.var or L.var)". 
+				exit 0
+		}
 		scalar `df_a' = e(df_a)
 		local touse `sample'
 		tempvar `prefix'`y'
@@ -215,8 +219,7 @@ program define innerregife, eclass
 			ereturn scalar rmse = `rmse'	
 		}
 	}
-
-	if "`fast'" ~= ""{
+	else{
 		/* return the estimate without standard errors */
 		local  p `: word count `xnamefast''
 		tempname b V

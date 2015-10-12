@@ -105,7 +105,7 @@ program define regife, sortpreserve
 	marksample touse
 	markout `touse' `id' `time' `wvar', strok
 
-	/*syntax varlist  */
+	/*syntax varlist */  
 	fvrevar `varlist' if `touse'
 	local varlist = r(varlist)
 	foreach v in `varlist'{
