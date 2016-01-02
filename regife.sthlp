@@ -1,14 +1,13 @@
 {smcl}
 {* *! version 0.2 08jul2015}{...}
-{vieweralsosee "reghdfe" "help reghdfe"}{...}
-{vieweralsosee "xtmg" "help xtmg"}{...}
-{viewerjumpto "Syntax" "regife##syntax"}{...}
-{viewerjumpto "Description" "regife##description"}{...}
-{viewerjumpto "Options" "regife##options"}{...}
-{viewerjumpto "Examples" "regife##examples"}{...}
-{viewerjumpto "Stored results" "regife##results"}{...}
-{viewerjumpto "References" "regife##references"}{...}
-{viewerjumpto "Author" "regife##contact"}{...}
+{vieweralsosee "tabstat" "help tabstat"}{...}
+{viewerjumpto "Syntax" "sumup##syntax"}{...}
+{viewerjumpto "Description" "sumup##description"}{...}
+{viewerjumpto "Options" "sumup##options"}{...}
+{viewerjumpto "Examples" "sumup##examples"}{...}
+{viewerjumpto "Stored results" "sumup##results"}{...}
+{viewerjumpto "References" "sumup##references"}{...}
+{viewerjumpto "Author" "sumup##contact"}{...}
 
 {title:Title}
 

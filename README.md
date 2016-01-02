@@ -74,7 +74,7 @@ regife sales price, f(state year, 2) residuals(newres)
 
 
 ## FAQ
-#### When should I use interactive fixed effects?
+#### When to use interactive fixed effects?
 Time fixed effects allow to control for aggregate shocks that impact individuals in the same way. Interactive fixed effects allow to control for aggregate shocks that impact individuals in different ways, as long as this heterogeneity is constant accross time.
 
 
