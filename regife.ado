@@ -185,7 +185,9 @@ program define regife, sortpreserve
 		}
 	}
 	
-	tsset `tssettimevar' `tssetpanelvar'
+	if ("`tssettimevar'" != "") {
+		tsset `tssettimevar' `tssetpanelvar'
+	}
 
 end
 
