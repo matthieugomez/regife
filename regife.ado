@@ -94,6 +94,10 @@ program define regife, sortpreserve
 
 	local id `id1'
 	local time `id2'
+	
+	tsset
+	local tssettimevar = r(timevar)
+	local tssetpanelvar = r(panelvar)
 
 	if ("`weight'"!=""){
 		local wtype `weight'
@@ -179,6 +183,10 @@ program define regife, sortpreserve
 			}
 
 		}
+	}
+	
+	if ("`tssettimevar'" != "") {
+		tsset `tssettimevar' `tssetpanelvar'
 	}
 
 end
