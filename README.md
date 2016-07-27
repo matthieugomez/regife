@@ -99,7 +99,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 #### How can I speedup the convergence?
 
 - Start the convergence at a given `beta` using `bstart`.
-- Save your dataset in `.csv` and use a similar [command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is much more faster.
+- Save your dataset in `.csv` and use the [Julia version of the command](https://github.com/matthieugomez/PanelFactorModels.jl), much faster (using sparse non linear least squares optimizations rather than iterations OLS/PCA)
 
 
 #### Can `β` be estimated by replacing X with the residuals of X on a factor model?
