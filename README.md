@@ -99,7 +99,6 @@ In presence of cross or time correlation beyond the factor structure, the estima
 #### How can I speedup the convergence?
 
 - Start the convergence at a given `beta` using `bstart`.
-- Decrease the `tolerance` (default to 1e-9) or `maxiteration` (default to 10000).
 - Save your dataset in `.csv` and use a similar [command](https://github.com/matthieugomez/PanelFactorModels.jl) in Julia, which is much more faster.
 
 
