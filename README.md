@@ -99,12 +99,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 #### How can I speedup the convergence?
 
 - Start the convergence at a given `beta` using `bstart`.
-- Save your dataset in `.csv` and use the [Julia version of the command](https://github.com/matthieugomez/PanelFactorModels.jl), much faster (using sparse non linear least squares optimizations rather than iterations OLS/PCA)
-
-
-#### Can `β` be estimated by replacing X with the residuals of X on a factor model?
-For models with fixed effect, an equivalent way to obtain β is to first demean regressors within groups and then regress `y` on these residuals instead of the original regressors.
-In contrast, this method does not work with models with interactive fixed effects. While fixed effects are linear projections (so that the Frisch-Waugh-Lovell theorem holds), factor models are non linear projections.
+- Save your dataset in `.csv` and use the [Julia version of the command](https://github.com/matthieugomez/PanelFactorModels.jl), much faster (using sparse non linear least squares optimization algorithms rather than iterations OLS/PCA)
 
 
 # Installation
