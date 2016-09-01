@@ -14,6 +14,7 @@ The model is estimated by least square, i.e. by finding the coefficients `β`, o
 ![minimization](img/minimization.png)
 
 
+The command is slow. A much faster algorithm is available in [Julia](https://github.com/matthieugomez/PanelFactorModels.jl)
 
 
 
@@ -96,10 +97,7 @@ In presence of cross or time correlation beyond the factor structure, the estima
 - Srebro, Nathan, and Tommi Jaakkola. *Weighted low-rank approximations* (2010) The Journal of Machine Learning Research 11 
 - Nocedal, Jorge and Stephen Wright *An Inexact Levenberg-Marquardt method for Large Sparse Nonlinear Least Squares*  (1985) The Journal of the Australian Mathematical Society
 
-#### How can I speedup the convergence?
 
-- Start the convergence at a given `beta` using `bstart`.
-- Save your dataset in `.csv` and use the [Julia version of the command](https://github.com/matthieugomez/PanelFactorModels.jl), much faster (using sparse non linear least squares optimization algorithms rather than iterations OLS/PCA)
 
 
 # Installation
