@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 12.0
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string)   [Absorb(string) GENerate(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string)   [Absorb(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
 	check syntax
@@ -83,15 +83,12 @@ program define ife, eclass sortpreserve
 	}
 
 
-	if "`generate'" ~= "" {
-		confirm new variable `generate'
-	}
 	if "`residuals'" ~= "" {
 		confirm new variable `residuals'
 	}
 
-	if "`generate'`residuals'`id1gen'`id2gen'" == ""{
-		di as error "Nothing to return. Either save the loading / factors (using the factors option), or the predicted observations (using the generate option) or the residuals (using the residuals option)"
+	if "`residuals'`id1gen'`id2gen'" == ""{
+		di as error "Nothing to return. Either save the loading / factors (using the factors option),  or the residuals (using the residuals option)"
 		exit 0
 	}
 
@@ -129,7 +126,7 @@ program define ife, eclass sortpreserve
 		qui replace `touse' = e(sample)
 	}
 	else{
-		display as text "Variable `varlist' is not demeaned. Use absorb(id) or absorb(time)"
+		display as text "Variable `varlist' is not demeaned. Use absorb(`id1') or absorb(`id2') to demean with respect `id1' or `id2'"
 		gen `res' = `varlist'
 	}
 
@@ -168,9 +165,8 @@ program define ife, eclass sortpreserve
 	}
 
 
-
 	/* mata program to find factors */
-	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`generate'", "`residuals'", "`verbose'")
+	mata: iterationf("`res'", "`g1'", "`g2'", "`wvar'", `N', `T', `dimension', `tolerance', `maxiterations', `touse_first', `touse_last', "`id1gen'", "`id2gen'", "`residuals'", "`verbose'")
 
 	/* display results */
 	local iter = r(N)
@@ -190,7 +186,7 @@ mata helper
 set matastrict on
 mata:
 
-	void iterationf(string scalar y, string scalar id, string scalar time, string scalar w, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, string scalar gen, string scalar residuals, string scalar verbose){
+	void iterationf(string scalar y, string scalar id, string scalar time, string scalar w, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, real scalar first, real scalar last, string scalar id1gen, string scalar id2gen, string scalar residuals, string scalar verbose){
 		
 
 		
@@ -230,6 +226,7 @@ mata:
 		Y = editmissing(Y, 0)
 		error = 1
 		iter = 0
+
 	
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			if (strlen(verbose) > 0){
@@ -263,6 +260,7 @@ mata:
 		st_numscalar("r(error)", error)
 
 		if (strlen(residuals) > 0){
+			residuals
 			idx = st_addvar("double", residuals)
 			for (obs = first; obs <= last ; obs++) {    
 				st_store(obs, idx, Y[_st_data(obs, iindex), _st_data(obs, tindex)] - R2[_st_data(obs, iindex), _st_data(obs, tindex)])
