@@ -153,11 +153,11 @@ program define regife, sortpreserve
 
 
 	if "`bootstrap'" ~= "yes" {
-		innerregife, dimension(`dimension') id(`id') time(`time') idgen(`idgen') timegen(`timegen') resgen(`residuals') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb') vce(`vce')  `optionlist'
+		innerregife, dimension(`dimension') id(`id') time(`time') idgen(`id1gen') timegen(`id2gen') resgen(`residuals') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb') vce(`vce')  `optionlist'
 	}
 	else{
 		/* get bstart */
-		qui innerregife, dimension(`dimension') id(`id') time(`time') idgen(`idgen') timegen(`timegen') resgen(`resgen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb')  `optionlist' 
+		qui innerregife, dimension(`dimension') id(`id') time(`time') idgen(`id1gen') timegen(`id2gen') resgen(`resgen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb')  `optionlist' 
 		tempname bstart 
 		matrix `bstart' = e(b)
 		if "`cluster'" == ""{
@@ -186,7 +186,7 @@ program define regife, sortpreserve
 	}
 	
 	if ("`tssettimevar'" != "") {
-		tsset `tssettimevar' `tssetpanelvar'
+		tsset `tssetpanelvar' `tssettimevar' 
 	}
 
 end

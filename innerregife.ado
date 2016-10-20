@@ -18,7 +18,6 @@ program define innerregife, eclass
 	vce(string) ///
 	]
 
-
 	/* tempname */
 	tempvar g1 g2 res
 	tempname b V
@@ -141,7 +140,6 @@ program define innerregife, eclass
 	else{
 		local b `bstart'
 	}
-
 
 	* iterate 
 	mata: info = iteration_svd("`py'", "`px'", "`wvar'", "`g1'", "`g2'", `N', `T', `dimension', `tolerance', `maxiterations', "`b'", `touse_first', `touse_last', "`idfactorlist'", "`timefactorlist'", "`res'", "`verbose'")
