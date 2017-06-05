@@ -118,3 +118,13 @@ To install the latest version  on Github
 	```
 	net install regife, from("SomeFolderRegife")
 	```
+
+
+
+# Cite
+
+You can cite the package as
+```
+Matthieu Gomez, 2015. REGIFE: Stata module to estimate linear models with interactive fixed effect. Statistical Software Components s457874, Boston College Department of Economics. https://ideas.repec.org/c/boc/bocode/s458042.html
+```
+

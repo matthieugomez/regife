@@ -11,7 +11,8 @@ regife ln_w tenure, f(id year, 1) vce(bootstrap)
 regife ln_w tenure, f(id year, 1) vce(bootstrap, cluster(id))
 regife ln_w tenure, a(id) f(id year, 1) vce(bootstrap, cluster(id))
 
-
+regife ln_w tenure [w=hours],  f(id year, 1)
+regife ln_w tenure age [w=hours],  a(id year) f(id year, 1)
 
 
 webuse nlswork, clear
