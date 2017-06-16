@@ -111,7 +111,7 @@ ssc install regife
 To install the latest version  on Github 
 - with Stata13+
 	```
-	net install regife, from(https://github.com/matthieugomez/stata-regife/raw/master/)
+	net install regife, from(https://github.com/matthieugomez/regife.ado/raw/master/)
 	```
 
 - with Stata 12 or older, download the zipfiles of the repositories and run in Stata the following commands:
