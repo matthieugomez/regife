@@ -107,6 +107,11 @@ program define ife, eclass sortpreserve
 	marksample touse
 	markout `touse' `id1' `id2' `wvar', strok
 
+	count if `touse'
+	if r(N) == 0{
+		di as error "There are no observations in the sample"
+		exit 0
+	}
 	/* tempname */
 	tempvar res res2 y2 g1 g2 y
 	tempname b V
@@ -126,7 +131,7 @@ program define ife, eclass sortpreserve
 		qui replace `touse' = e(sample)
 	}
 	else{
-		display as text "Variable `varlist' is not demeaned. Use absorb(`id1') or absorb(`id2') to demean with respect `id1' or `id2'"
+		display as text "Variable `varlist' is not demeaned. Use absorb(`id1') (resp. absorb(`id2')) if you want to demean with respect to `id1' (resp. `id2')"
 		gen `res' = `varlist'
 	}
 
@@ -227,7 +232,7 @@ mata:
 		error = 1
 		iter = 0
 
-	
+
 		while (((maxiterations == 0) | (iter < maxiterations)) & (error >= tolerance)){
 			if (strlen(verbose) > 0){
 				if ((mod(iter, 100)==0) & (iter > 0)){

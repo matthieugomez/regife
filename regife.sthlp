@@ -1,13 +1,13 @@
 {smcl}
 {* *! version 0.3 12apr2017}{...}
 {vieweralsosee "tabstat" "help tabstat"}{...}
-{viewerjumpto "Syntax" "sumup##syntax"}{...}
-{viewerjumpto "Description" "sumup##description"}{...}
-{viewerjumpto "Options" "sumup##options"}{...}
-{viewerjumpto "Examples" "sumup##examples"}{...}
-{viewerjumpto "Stored results" "sumup##results"}{...}
-{viewerjumpto "References" "sumup##references"}{...}
-{viewerjumpto "Author" "sumup##contact"}{...}
+{viewerjumpto "Syntax" "regife##syntax"}{...}
+{viewerjumpto "Description" "regife##description"}{...}
+{viewerjumpto "Options" "regife##options"}{...}
+{viewerjumpto "Examples" "regife##examples"}{...}
+{viewerjumpto "Stored results" "regife##results"}{...}
+{viewerjumpto "References" "regife##references"}{...}
+{viewerjumpto "Author" "regife##contact"}{...}
 
 {title:Title}
 
@@ -30,7 +30,7 @@
 {title:Description}
 
 {pstd}
-{cmd:regife} fits a model with interactive fixed effects following Bai (2009). Optionally, it saves the estimated factors. Errors are computed following the regressions indicated in Section 6, but Monte Carlo evidence suggest bootstraps performs better in finite sample. The program requires {help reghdfe} and {help hdfe} to be installed (both are available on SSC).
+{cmd:regife} fits a model with interactive fixed effects following Bai (2009). If you want to fit a model with interacted fixed effects, use {help reghdfe}. Optionally, it saves the estimated factors. Errors are computed following the regressions indicated in Section 6, but Monte Carlo evidence suggest bootstraps performs better in finite sample. The program requires {help reghdfe} and {help hdfe} to be installed (both are available on SSC).
 
 
 {marker options}{...}
