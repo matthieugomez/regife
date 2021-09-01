@@ -69,9 +69,9 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {pstd}Model including id fixed effect, year fixed effect,  and a factor model in id, year of dimension 1{p_end}
 {phang2}{cmd:. regife  ln_w tenure, a(id year) ife(id year, 1)}{p_end}
 {pstd}Save interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, ife(fid = id fyear = year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(ife_id = id ife_year = year, 1)}{p_end}
 {pstd}Save fixed effects and interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(feid = id feyear = year) ife(fid = id fyear = year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(fe_id = id fe_year = year) ife(ife_id = id ife_year = year, 1)}{p_end}
 {pstd}Generate residuals{p_end}
 {phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) residuals(newvar)}{p_end}
 {pstd}Bootstrap standard errros{p_end}
