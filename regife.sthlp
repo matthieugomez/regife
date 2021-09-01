@@ -69,7 +69,7 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {pstd}Save interactive fixed effects{p_end}
 {phang2}{cmd:. regife  ln_w tenure, f(fid = id fyear = year, 1)}{p_end}
 {pstd}Save fixed effects and interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(feid = id fe feyear = year) f(fid = id fyear = year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(feid = id feyear = year) f(fid = id fyear = year, 1)}{p_end}
 {pstd}Generate residuals{p_end}
 {phang2}{cmd:. regife  ln_w tenure, f(id year, 1) residuals(newvar)}{p_end}
 {pstd}Bootstrap standard errros{p_end}
