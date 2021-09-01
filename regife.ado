@@ -9,7 +9,7 @@ program define regife, sortpreserve
 	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , [Factors(string) ife(string) vce(string) Absorb(string) RESiduals(string) * ]
 
 	if "`factors'" != ""{
-		di as info "The option factors has been renamed to ife. Please replace factors(idvar timevar, ndims) by ife(idvar timevar, ndims)"
+		di as info "The option factors is deprecated. Please replace factors(idvar timevar, ndims) or f(idvar timevar, ndims) by ife(idvar timevar, ndims)"
 		local ife `factors'
 	}
 	if "`ife'" != ""{
