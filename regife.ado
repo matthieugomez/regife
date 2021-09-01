@@ -6,8 +6,14 @@ v0.4 09/01/2021: remove error when N < T + preserve tsset
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12.0
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , Factors(string) [vce(string) Absorb(string) RESiduals(string) * ]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , [Factors(string) ife(string) vce(string) Absorb(string) RESiduals(string) * ]
 
+	if "`factors'" != ""{
+		di as error "The option factors has been renamed to ife"
+	}
+	if "`ife'" != ""{
+		di as error "option ife() required"
+	}
 
 
 	local optionlist `options'
@@ -54,7 +60,7 @@ program define regife, sortpreserve
 	}
 
 	/* syntax factors */
-	if regexm("`factors'", "(.*),(.*)"){
+	if regexm("`ife'", "(.*),(.*)"){
 		local factors  = regexs(1)
 		local dimension = regexs(2)
 	}

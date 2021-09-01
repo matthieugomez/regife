@@ -26,7 +26,7 @@ The command is slow. A much faster algorithm is available in [Julia](https://git
 
 ```
 insheet "data/cigar.csv", clear
-regife sales price, f(state year, 3)
+regife sales price, ife(state year, 3)
 ```
 
 
@@ -40,7 +40,7 @@ You can impose id and/or time fixed effect by estimating models of the form
 Just use the option `absorb` along with the option `factors`:
 
 ```
-regife sales price, f(state year, 2)  a(state year)
+regife sales price, ife(state year, 2)  a(state year)
 ```
 
 
@@ -61,14 +61,14 @@ Weights are supported but should be constant within id
 Save loadings and/or factors by specifying new variable names at the left hand side of `=`
 
 ```
-regife sales price, a(fe_state=state) f(ife_state=state ife_year=year, 2) 
+regife sales price, a(fe_state=state) ife(ife_state=state ife_year=year, 2) 
 ```
 
 To save residuals, use the option `residuals`
 
 
 ```
-regife sales price, f(state year, 2) residuals(newres)
+regife sales price, ife(state year, 2) residuals(newres)
 ```
 
 

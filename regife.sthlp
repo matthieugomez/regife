@@ -30,7 +30,7 @@
 {title:Description}
 
 {pstd}
-{cmd:regife} fits a model with interactive fixed effects following Bai (2009). If you want to fit a model with interacted fixed effects, use {help reghdfe}. Optionally, it saves the estimated factors. Errors are computed following the regressions indicated in Section 6, but Monte Carlo evidence suggest bootstraps performs better in finite sample. The program requires {help reghdfe} and {help hdfe} to be installed (both are available on SSC).
+{cmd:regife} fits a model with interactive fixed effects following Bai (2009). If you want to fit a model with interacted fixed effects, use {help reghdfe}. Optionally, it saves the estimated interactive fixed effects. Errors are computed following the regressions indicated in Section 6, but Monte Carlo evidence suggest bootstraps performs better in finite sample. The program requires {help reghdfe} and {help hdfe} to be installed (both are available on SSC).
 
 
 {marker options}{...}
@@ -38,8 +38,10 @@
 {synoptset 30 tabbed}{...}
 {synopthdr}
 {synoptline}
-{synopt :{opt f:actors(idvar timevar, dimensionint)}} id variable, time variable, and factor dimension. To save the estimates for the factor model, write {newvar}{inp:={it:factorvar}}.{p_end}
-{synopt :{opt a:bsorb}{cmd:(}{help reghdfe##absvar:absvar}[...]{cmd:)}} identifiers of the fixed effects that will be absorbed. To save the estimates for the fixed effect, write {newvar}{inp:={it:absvarvar}}.{p_end}
+{synopt :{opt ife(idvar timevar, ndims)}} specifies the id variable, time variable, and the dimension of the factor model. To save the estimated interactive fixed effects, write 
+{it:ife(ife_idvar = idvar ife_timevar = timevar, ndims)}. {p_end}
+
+{synopt :{opt a:bsorb}{cmd:(}{help reghdfe##absvar:absvar}[...]{cmd:)}} identifiers of the fixed effects that will be absorbed. To save the estimated fixed effects, write {it:absorb(fe_absvar = absvar)}.{p_end}
 {synopt:{opt vce}{cmd:(}{help reghdfe##vcetype:vcetype}[, {it:opt}]{cmd:)}}{it:vcetype}}
 is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt cl:uster} {it:clustervars}. Monte carlo evidence suggests that bootstrap performs better in finite sample{p_end}
 {synopt:{opt tol:erance(#)}} specifies the tolerance criterion for convergence; default is {cmd:tolerance(1e-9)}{p_end}
@@ -61,21 +63,21 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {phang2}{cmd:. keep if id <= 100}{p_end}
 
 {pstd}Factor model in id, year of dimension 1{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(id year, 1)}{p_end}
 {pstd}Model including id fixed effect, and a factor model in id, year of dimension 2{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(id) f(id year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(id) ife(id year, 1)}{p_end}
 {pstd}Model including id fixed effect, year fixed effect,  and a factor model in id, year of dimension 1{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(id year) f(id year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(id year) ife(id year, 1)}{p_end}
 {pstd}Save interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(fid = id fyear = year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(fid = id fyear = year, 1)}{p_end}
 {pstd}Save fixed effects and interactive fixed effects{p_end}
-{phang2}{cmd:. regife  ln_w tenure, a(feid = id feyear = year) f(fid = id fyear = year, 1)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, a(feid = id feyear = year) ife(fid = id fyear = year, 1)}{p_end}
 {pstd}Generate residuals{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) residuals(newvar)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) residuals(newvar)}{p_end}
 {pstd}Bootstrap standard errros{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) vce(bootstrap)}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) vce(bootstrap)}{p_end}
 {pstd}Block bootstrap with respect to id{p_end}
-{phang2}{cmd:. regife  ln_w tenure, f(id year, 1) vce(bootstrap, cluster(id))}{p_end}
+{phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) vce(bootstrap, cluster(id))}{p_end}
 
 
 
