@@ -95,10 +95,6 @@ program define regife, sortpreserve
 
 	local id `id1'
 	local time `id2'
-	
-	tsset
-	local tssettimevar = r(timevar)
-	local tssetpanelvar = r(panelvar)
 
 	if ("`weight'"!=""){
 		local wtype `weight'
@@ -167,7 +163,6 @@ program define regife, sortpreserve
 		}
 		else{
 			tempvar clusterid
-			tsset, clear
 			if "`id'" == "`cluster'"{
 				local absorbvars = substr("`absorbvars'", "`id'", "`clusterid'")
 				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
@@ -184,10 +179,6 @@ program define regife, sortpreserve
 			}
 
 		}
-	}
-	
-	if ("`tssettimevar'" != "") {
-		tsset `tssetpanelvar' `tssettimevar' 
 	}
 
 end

@@ -115,17 +115,13 @@ program define innerregife, eclass
 
 
 	/* some checks */
-	cap assert `T' >= `dimension'
+	cap assert min(`T', `N') >= `dimension'
 	if _rc{
 		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
 		exit 0
 	}
-	cap assert `N' >= `T'
-	if _rc{
-		di as error "The first factor should have higher cardinality than the second factor"
-		exit 0
-	}
-	cap assert `N' < _N & `T' <_N
+	
+	cap assert max(`N', `T') <_N
 	if _rc{
 		di as error "More levels of FE than observations!"
 		exit 3498
