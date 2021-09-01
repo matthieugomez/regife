@@ -2,7 +2,7 @@
 v0.1 07/08/2015: first release
 v0.2 07/09/2015: correct normalization for loadings
 v0.3 04/12/2017: correct weight
-
+v0.4 09/01/2021: remove error when N < T + preserve tsset
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12.0
