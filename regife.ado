@@ -96,6 +96,8 @@ program define regife, sortpreserve
 	local id `id1'
 	local time `id2'
 
+
+
 	if ("`weight'"!=""){
 		local wtype `weight'
 		local wvar  `=subinstr("`exp'","=","", .)'
@@ -163,6 +165,10 @@ program define regife, sortpreserve
 		}
 		else{
 			tempvar clusterid
+			cap tsset
+			cap local tssettimevar = r(timevar)
+			cap local tssetpanelvar = r(panelvar)
+			tsset, clear
 			if "`id'" == "`cluster'"{
 				local absorbvars = substr("`absorbvars'", "`id'", "`clusterid'")
 				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
@@ -177,7 +183,9 @@ program define regife, sortpreserve
 				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
 				innerregife, dimension(`dimension') id(`id') time(`time') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast  bstart(`bstart')`optionlist'
 			}
-
+			if ("`tssettimevar'" != "") {
+				tsset `tssetpanelvar' `tssettimevar' 
+			}
 		}
 	}
 
