@@ -61,7 +61,6 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {pstd}Setup{p_end}
 {phang2}{cmd:. webuse nlswork}{p_end}
 {phang2}{cmd:. keep if id <= 100}{p_end}
-
 {pstd}Factor model in id, year of dimension 1{p_end}
 {phang2}{cmd:. regife  ln_w tenure, ife(id year, 1)}{p_end}
 {pstd}Model including id fixed effect, and a factor model in id, year of dimension 2{p_end}
