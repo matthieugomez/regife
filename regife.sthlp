@@ -23,7 +23,7 @@
 {depvar} [{indepvars}] 
 {ifin} {it:{weight}}
 {cmd:,} 
-{opth ife(idvar timevar, dimensionint)} 
+{opth ife(idvar timevar, ndmis)} 
 [{help regife##options:options}] {p_end}
 
 {marker description}{...}
