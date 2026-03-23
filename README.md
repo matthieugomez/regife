@@ -2,7 +2,9 @@
 
 # regife (Bai 2009)
 
-The command `regife` estimates models with *interactive* fixed effects following [Bai (2009)](https://onlinelibrary.wiley.com/doi/pdf/10.3982/ECTA6135). (Note: to estimate model with *interacted* fixed effects, use [reghdfe](https://github.com/sergiocorreia/reghdfe).)
+The command `regife` estimates models with interactive fixed effects following [Bai (2009)](https://onlinelibrary.wiley.com/doi/pdf/10.3982/ECTA6135). 
+
+(Warning: models with interactive fixed effects are similar to factor models. To estimate more standard models with *interacted* fixed effects, use [reghdfe](https://github.com/sergiocorreia/reghdfe) instead)
 
 For an observation `i`, denote (`jλ(i)`, `jf(i)`) the associated pair (`id` x `time`).  The command estimates models of the form 
 
