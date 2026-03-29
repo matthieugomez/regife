@@ -56,7 +56,7 @@ program define innerregife, eclass
 		tempname prefix
 		cap qui hdfe `y' `x'   if `touse' `wt', a(`absorbvars') gen(`prefix') sample(`sample')
 		if _rc ~= 0{
-			display as error "internall call to hdfe failed (error code: `=_rc'). This may be due to implicit categorical variables / time series variables in the model (i.e. i.var or L.var)". 
+			display as error "internal call to hdfe failed (error code: `=_rc'). This may be due to implicit categorical variables / time series variables in the model (i.e. i.var or L.var)". 
 			exit 0
 		}
 		scalar `df_a' = e(df_a)
@@ -177,7 +177,7 @@ program define innerregife, eclass
 		}
 		qui cap reghdfe `yhdfe' `xhdfe' `wt'  if `touse',  a(`absorb' `idfactors' `timefactors')  tol(`tolerance') `vceoption' keepsingletons
 		if _rc ~= 0{
-			display as error "internall call to reghdfe failed (error code: `=_rc'). Returning the estimate without standard errors". 
+			display as error "internal call to reghdfe failed (error code: `=_rc'). Returning the estimate without standard errors". 
 			local fast "fast"
 		}
 		else{

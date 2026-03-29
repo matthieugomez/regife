@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.3 12apr2017}{...}
+{* *! version 0.4 01sep2021}{...}
 {vieweralsosee "tabstat" "help tabstat"}{...}
 {viewerjumpto "Syntax" "regife##syntax"}{...}
 {viewerjumpto "Description" "regife##description"}{...}
@@ -12,7 +12,7 @@
 {title:Title}
 
 {p2colset 5 18 20 2}{...}
-{p2col :{cmd:reghdfe} {hline 2}}Linear models with interactive fixed effects{p_end}
+{p2col :{cmd:regife} {hline 2}}Linear models with interactive fixed effects{p_end}
 {p2colreset}{...}
 
 {marker syntax}{...}
@@ -30,7 +30,8 @@
 {title:Description}
 
 {pstd}
-{cmd:regife} fits a model with interactive fixed effects following Bai (2009). If you want to fit a model with interacted fixed effects, use {help reghdfe}. Optionally, it saves the estimated interactive fixed effects. Errors are computed following the regressions indicated in Section 6, but Monte Carlo evidence suggest bootstraps performs better in finite sample. The program requires {help reghdfe} and {help hdfe} to be installed (both are available on SSC).
+{cmd:regife} fits a model with interactive fixed effects following Bai (2009). If you want to fit a model with {it:interacted} fixed effects (e.g., {cmd:i.state#i.year}), use {help reghdfe} instead.
+Optionally, {cmd:regife} saves the estimated factors, loadings, and residuals. Standard errors are computed following the regressions indicated in Section 6 of Bai (2009), but Monte Carlo evidence suggests bootstrap performs better in finite samples. The program requires {help reghdfe} to be installed (available on SSC).
 
 
 {marker options}{...}
@@ -43,9 +44,9 @@
 
 {synopt :{opt a:bsorb}{cmd:(}{help reghdfe##absvar:absvar}[...]{cmd:)}} identifiers of the fixed effects that will be absorbed. To save the estimated fixed effects, write {it:absorb(fe_absvar = absvar)}.{p_end}
 {synopt:{opt vce}{cmd:(}{help reghdfe##vcetype:vcetype}[, {it:opt}]{cmd:)}}{it:vcetype}}
-is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt cl:uster} {it:clustervars}. Monte carlo evidence suggests that bootstrap performs better in finite sample{p_end}
+is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootstrap} or {opt cl:uster} {it:clustervars}. Monte Carlo evidence suggests that bootstrap performs better in finite samples{p_end}
 {synopt:{opt tol:erance(#)}} specifies the tolerance criterion for convergence; default is {cmd:tolerance(1e-9)}{p_end}
-{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(5000)}. 0 corresponds to an illimited number of iterations{p_end}
+{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(5000)}. 0 corresponds to an unlimited number of iterations{p_end}
 {synopt :{opt res:iduals(newvar)}} save residuals {p_end}
 {synopt :{opt bstart(matrix)}} start the iteration algorithm at a given value  for b{p_end}
 {synoptline}
@@ -73,7 +74,7 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {phang2}{cmd:. regife  ln_w tenure, a(fe_id = id fe_year = year) ife(ife_id = id ife_year = year, 1)}{p_end}
 {pstd}Generate residuals{p_end}
 {phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) residuals(newvar)}{p_end}
-{pstd}Bootstrap standard errros{p_end}
+{pstd}Bootstrap standard errors{p_end}
 {phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) vce(bootstrap)}{p_end}
 {pstd}Block bootstrap with respect to id{p_end}
 {phang2}{cmd:. regife  ln_w tenure, ife(id year, 1) vce(bootstrap, cluster(id))}{p_end}
@@ -92,11 +93,12 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {synopt:{cmd:e(N)}}number of observations{p_end}
 {synopt:{cmd:e(df_r)}}residual degrees of freedom{p_end}
 {synopt:{cmd:e(df_m)}}model degrees of freedom{p_end}
-{synopt:{cmd:e(F)}}residual sum of squares{p_end}
-{synopt:{cmd:e(mss)}}total sum of squares{p_end}
+{synopt:{cmd:e(F)}}F statistic{p_end}
+{synopt:{cmd:e(mss)}}model sum of squares{p_end}
 {synopt:{cmd:e(rss)}}residual sum of squares{p_end}
+{synopt:{cmd:e(rmse)}}root mean squared error{p_end}
 {synopt:{cmd:e(iterations)}}number of iterations{p_end}
-{synopt:{cmd:e(error)}}convergence error{p_end} 
+{synopt:{cmd:e(convergence_error)}}convergence error{p_end}
 
 {synoptset 24 tabbed}{...}
 {p2col 5 24 28 2: Macros}{p_end}
@@ -106,7 +108,7 @@ is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootrap} or {opt c
 {synopt:{cmd:e(id)}}id variable {p_end}
 {synopt:{cmd:e(time)}}time variable {p_end}
 {synopt:{cmd:e(dimension)}}dimension{p_end}
-{synopt:{cmd:e(congerged)}}did the algorithm converge?{p_end}
+{synopt:{cmd:e(converged)}}did the algorithm converge?{p_end}
 
 
 
@@ -130,11 +132,11 @@ Jushan Bai. "Panel Data Models with Interactive Fixed Effects".
 Matthieu Gomez
 
 {phang}
-Department of Economics, Princeton University
+Department of Economics, Columbia University
 
 {phang}
 Please report issues on Github
-{browse "https://github.com/matthieugomez/stata-regife":https://github.com/matthieugomez/stata-regife}
+{browse "https://github.com/matthieugomez/regife":https://github.com/matthieugomez/regife}
 {p_end}
 
 

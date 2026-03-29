@@ -1,21 +1,17 @@
 v 3
 
-d regife. Estimate interactive fixed effect models
+d regife. Estimate linear models with interactive fixed effects (Bai 2009)
 d
-d Author: Matthieu Gomez
+d Author: Matthieu Gomez, Columbia University
 d
 d
-d KW: xtmg, xtcd, reghdfe
+d KW: interactive fixed effects, factor models, reghdfe
 d
-d Requires: Stata version 12
+d Requires: Stata version 12, reghdfe
 d
-d Distribution-Date: 20150708
+d Distribution-Date: 20210901
 d
 f regife.ado
 f regife.sthlp
 f innerregife.ado
 f ife.ado
-
-
-
-
