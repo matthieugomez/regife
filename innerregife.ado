@@ -56,8 +56,8 @@ program define innerregife, eclass
 		tempname prefix
 		cap qui hdfe `y' `x'   if `touse' `wt', a(`absorbvars') gen(`prefix') sample(`sample')
 		if _rc ~= 0{
-			display as error "internal call to hdfe failed (error code: `=_rc'). This may be due to implicit categorical variables / time series variables in the model (i.e. i.var or L.var)". 
-			exit 0
+			display as error "internal call to hdfe failed (error code: `=_rc'). This may be due to implicit categorical variables / time series variables in the model (i.e. i.var or L.var)".
+			exit _rc
 		}
 		scalar `df_a' = e(df_a)
 		local touse `sample'
@@ -72,6 +72,7 @@ program define innerregife, eclass
 			local px `px' ``prefix'`v''
 		}
 		local xname2 `xname'
+		local xnamefast `xname'
 		local yhdfe `y'
 		local xhdfe `x'
 	}
@@ -118,7 +119,7 @@ program define innerregife, eclass
 	cap assert min(`T', `N') >= `dimension'
 	if _rc{
 		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
-		exit 0
+		exit 198
 	}
 	
 	cap assert max(`N', `T') <_N
@@ -233,6 +234,7 @@ program define innerregife, eclass
 
 
 
+	ereturn matrix bend = `bend'
 	ereturn scalar iterations = `iter'
 	ereturn scalar convergence_error = `convergence_error'
 
@@ -277,16 +279,15 @@ set matastrict on
 mata:
 
 	void iteration_svd(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idfactorlist, string scalar timefactorlist, string scalar resgen, string scalar verbose){
-		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
-		real scalar iindex, tindex, windex, iter, obs, col, idx, error
-		string scalar name
-		real colvector s, b1, b2
+		real matrix Y, X, tY, M, Ws, V, R, W, factors, loadings, index, R2, factorsfull, variance, variance2, res
+		real scalar iter, obs, col, idx, error
+		real colvector S, b1, b2
+		string rowvector names
 		index = st_data(first::last, (id,time))
 		st_view(Y, (first::last), y)
 		st_view(X, (first::last), x)
 		b1 = st_matrix(bname)'
 		if (strlen(w) > 0) {
-			windex = st_varindex(w)
 			st_view(W, (first::last), w)
 			M = invsym(quadcross(X, W, X))* X' * diag(W)		
 			Ws = J(N, 1, 1)
@@ -346,8 +347,6 @@ mata:
 		}
 		factors = factorsfull[., 1::d] :* sqrt(T)
 		loadings = (R * factors) :/ T
-		MT = I(T) :- cross(factors', factors') / T 
-		MI = I(N) :- ((loadings :* Ws) * invsym(cross((loadings :* Ws), (loadings:* Ws))) * (loadings :* Ws)')
 
 		st_numscalar("r(N)", iter)
 		st_numscalar("r(convergence_error)", error)
@@ -373,143 +372,6 @@ mata:
 		}
 	}
 
-
-
-	void iteration_gs(string scalar y, string scalar x, string scalar w, string scalar id, string scalar time, real scalar N, real scalar T, real scalar d, real scalar tolerance, real scalar maxiterations, string scalar bname, real scalar first, real scalar last, string scalar idfactorlist, string scalar timefactorlist, string scalar resgen, string scalar verbose){
-		real matrix Y , X, tY, M, Ws, U, V, R, W, Wm, factors, loadings
-		real scalar iindex, tindex, windex, iter, obs, col, idx, error
-		string scalar name
-		real colvector s, b1, b2
-		idindex = st_data(first::last, id)
-		timeindex = st_data(first::last, time)
-		st_view(Y, (first::last), y)
-		st_view(X, (first::last), x)
-		b1 = st_matrix(bname)'
-		if (strlen(w) > 0) {
-			windex = st_varindex(w)
-			st_view(W, (first::last), w)
-			M = invsym(quadcross(X, W, X))* X' * diag(W)		
-			Ws = J(N, 1, 1)
-			for (obs = 1; obs <= last - first + 1; obs++) {    
-				Ws[|index[obs, 1]|] = W[obs]
-			}
-			Ws = sqrt(Ws)
-		}
-		else{
-			Ws = J(N, 1, 1)
-			M = invsym(quadcross(X, X)) * X'
-		}
-
-		factors = J(T, d, 0.1)
-		loadings = J(N, d, 0.1)
-		idstorage1 = J(N, 1, 0)
-		idstorage2 = J(N, 1, 0)
-		timestorage1 = J(T, 1, 0)
-		timestorage2 = J(T, 1, 0)
-		U = J(d, d, .)
-		Dx = J(d, 1, .)
-		invDx = J(d, 1, .)
-
-		V = J(d, d, .)
-		iter = 0
-		error = 1
-		initial_iter = 30
-		while ((maxiterations == 0) | (iter < maxiterations)){
-			/* construct residuals */
-			iter = iter + 1
-			/* construct residuals  */
-			tY = Y :-  X * b1
-			for (r = 1 ; r <= d; r++) {
-				for (inner_iter  = 1 ; inner_iter <= initial_iter; inner_iter++){
-					for (obs = 1; obs <= last - first + 1; obs++) { 
-						idi = idindex[obs]
-						timei = timeindex[obs]   
-						factor = factors[timei, r]
-						idstorage1[idi]= idstorage1[idi] + tY[obs] * factor
-						idstorage2[idi]= idstorage2[idi] + factor^2
-					}
-					for (i = 1 ; i <= N; i++){
-						loadings[i, r] = idstorage1[i] / idstorage2[i]
-						idstorage1[i] = 0
-						idstorage2[i] = 0
-					}
-					for (obs = 1; obs <= last - first + 1; obs++) {    
-						idi = idindex[obs]
-						timei = timeindex[obs]   
-						loading = loadings[idi, r]
-						timestorage1[timei]= timestorage1[timei] + tY[obs] * loading
-						timestorage2[timei]= timestorage2[timei] + loading^2
-					}
-					for (i = 1 ; i <= T; i++){
-						factors[i, r] = timestorage1[i] / timestorage2[i]
-						timestorage1[i] = 0
-						timestorage2[i] = 0
-					}
-				}
-				for (obs = 1; obs <= last - first + 1 ; obs++) {    
-					idi = idindex[obs]
-					timei = timeindex[obs]   
-					tY[i] = tY[i] - loadings[idi, r] * factors[timei, r]
-				}
-			}
-			initial_iter = 1
-			for (obs = 1; obs <= last - first + 1  ; obs++) {  
-				idi = idindex[obs]
-				timei = timeindex[obs]   
-				sum = 0
-				for (r= 1 ; r <= d; r++) {
-					sum = sum + loadings[idi, r] * factors[timei, r]
-				}
-				tY[obs] = Y[obs] - sum
-			}
-			/* estimate coefficient of (Y- PCA(RES)) on b */
-			b2 = M * tY
-			error = max(abs(b2 :-b1))
-			b1 = b2
-			if (error < tolerance){
-				break
-			}
-		}
-
-		/* scale factors and loadings */
-		_symeigensystem(cross(factors, factors), U, Dx)
-
-		for (i = 1; i <= d; i++){
-			Dx[i] = sqrt(abs(Dx[i]))
-		}
-		for (i = 1; i <= d; i++){
-			invDx[i] = 1/Dx[i]
-		}
-		scaledloadings = loadings * U * diag(Dx)
-		_symeigensystem(cross(scaledloadings, scaledloadings), V, Dx2)
-		loadings = loadings * U * diag(Dx) * V
-		factors = factors *  U * diag(invDx) * V
-
-
-
-		st_numscalar("r(N)", iter)
-		st_numscalar("r(convergence_error)", error)
-		st_matrix("r(b)",b1')
-		names = tokens(idfactorlist)
-		for (r = 1; r <= d; r++){
-			idx = st_addvar("double", names[r])
-			for (obs = 1; obs <= last - first + 1 ; obs++) { 
-				st_store(obs, idx , loadings[idindex[obs - first + 1], r])
-			} 
-		}
-		names = tokens(timefactorlist)
-		for (r = 1; r <= d; r++){
-			idx = st_addvar("double", names[r])
-			for (obs = first; obs <= last ; obs++) { 
-				st_store(obs, idx , factors[timeindex[obs - first + 1], r])
-			} 
-		}
-		res = Y :- tY :- X * b2
-		idx = st_addvar("double", resgen)
-		for (obs = first; obs <= last ; obs++) { 
-			st_store(obs, idx , res[obs-first + 1])
-		}
-	}
 
 
 

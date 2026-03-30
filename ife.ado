@@ -1,6 +1,6 @@
 program define ife, eclass sortpreserve
 	version 12.0
-	syntax varname [if] [in] [aweight fweight pweight iweight], Factors(string)   [Absorb(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
+	syntax varname [if] [in] [aweight fweight pweight], Factors(string)   [Absorb(string) RESiduals(string) TOLerance(real 1e-6) MAXIterations(int 10000) VERBose]
 
 	/***************************************************************************************************
 	check syntax
@@ -43,7 +43,7 @@ program define ife, eclass sortpreserve
 	}
 	else{
 		di as error "dimensions should be specified within the option factors"
-		exit
+		exit 198
 	}
 	while (regexm("`factors'", "[ ][ ]+")) {
 		local factors : subinstr local factors "  " " ", all
@@ -54,7 +54,7 @@ program define ife, eclass sortpreserve
 	cap assert `: word count `factors'' == 2
 	if _rc{
 		di as error "There must be exactly two variables in the option factors"
-		exit 
+		exit 198
 	}
 
 
@@ -89,7 +89,7 @@ program define ife, eclass sortpreserve
 
 	if "`residuals'`id1gen'`id2gen'" == ""{
 		di as error "Nothing to return. Either save the loading / factors (using the factors option),  or the residuals (using the residuals option)"
-		exit 0
+		exit 198
 	}
 
 	if ("`weight'"!=""){
@@ -166,7 +166,7 @@ program define ife, eclass sortpreserve
 	cap assert `T' >= `dimension'
 	if _rc{
 		di as error "The factor structure dimension should be lower than the number of distinct values of the time variable"
-		exit 0
+		exit 198
 	}
 
 

@@ -3,10 +3,14 @@ v0.1 07/08/2015: first release
 v0.2 07/09/2015: correct normalization for loadings
 v0.3 04/12/2017: correct weight
 v0.4 09/01/2021: remove error when N < T + preserve tsset
+v0.6 03/29/2026: fix cluster bootstrap. In previous versions, vce(bootstrap, cluster())
+  silently ignored the absorb() option and used the wrong panel id for resampling when
+  variable names were abbreviated. Point estimates from regife without bootstrap were
+  unaffected. Standard errors from vce(bootstrap) without cluster() were also unaffected.
 ***************************************************************************************************/
 program define regife, sortpreserve
 	version 12.0
-	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight iweight] , [Factors(string) ife(string) vce(string) Absorb(string) RESiduals(string) * ]
+	syntax [varlist(min=1 numeric fv ts)] [if] [in] [aweight fweight pweight] , [Factors(string) ife(string) vce(string) Absorb(string) RESiduals(string) * ]
 
 	if "`factors'" != ""{
 		di as  txt "The option factors() was renamed to ife(). In the future, please use the syntax ife(`factors') to specify the factor model."
@@ -68,7 +72,7 @@ program define regife, sortpreserve
 	}
 	else{
 		di as error "dimensions should be specified within the option factors"
-		exit
+		exit 198
 	}
 
 
@@ -83,7 +87,7 @@ program define regife, sortpreserve
 	cap assert `: word count `factors'' == 2
 	if _rc{
 		di as error "There must be exactly two variables in the option factors"
-		exit 
+		exit 198
 	}
 
 	forv i = 1/2{	 
@@ -101,6 +105,8 @@ program define regife, sortpreserve
 		confirm var `id`i''
 	}
 
+	unab id1 : `id1'
+	unab id2 : `id2'
 	local id `id1'
 	local time `id2'
 
@@ -165,8 +171,8 @@ program define regife, sortpreserve
 	else{
 		/* get bstart */
 		qui innerregife, dimension(`dimension') id(`id') time(`time') idgen(`id1gen') timegen(`id2gen') resgen(`resgen') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar')  absorbvars(`absorbvars') absorb(`absorb')  `optionlist' 
-		tempname bstart 
-		matrix `bstart' = e(b)
+		tempname bstart
+		matrix `bstart' = e(bend)
 		if "`cluster'" == ""{
 			bootstrap,  `bootstrapoptions' : ///
 			innerregife, dimension(`dimension') id(`id') time(`time') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars') fast bstart(`bstart') `optionlist'
@@ -178,12 +184,16 @@ program define regife, sortpreserve
 			cap local tssetpanelvar = r(panelvar)
 			tsset, clear
 			if "`id'" == "`cluster'"{
-				local absorbvars = substr("`absorbvars'", "`id'", "`clusterid'")
+				if "`absorbvars'" != "" {
+					local absorbvars : subinstr local absorbvars "`id'" "`clusterid'", all
+				}
 				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
 				innerregife, dimension(`dimension') id(`clusterid') time(`time') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast bstart(`bstart') `optionlist'
 			}
 			else if "`time'" == "`cluster'"{
-				local absorb = substr("`absorb'", "`time'", "`clusterid'")
+				if "`absorbvars'" != "" {
+					local absorbvars : subinstr local absorbvars "`time'" "`clusterid'", all
+				}
 				bootstrap, cluster(`cluster') idcluster(`clusterid') `bootstrapoptions': ///
 				innerregife, dimension(`dimension') id(`id') time(`clusterid') y(`y') x(`x') yname(`yname') xname(`xname') touse(`touse') wtype(`wtype') wvar(`wvar') absorb(`absorb') absorbvars(`absorbvars')  fast bstart(`bstart') `optionlist'
 			}

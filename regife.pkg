@@ -9,7 +9,7 @@ d KW: interactive fixed effects, factor models, reghdfe
 d
 d Requires: Stata version 12, reghdfe
 d
-d Distribution-Date: 20210901
+d Distribution-Date: 20260329
 d
 f regife.ado
 f regife.sthlp

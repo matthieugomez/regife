@@ -1,5 +1,5 @@
 {smcl}
-{* *! version 0.4 01sep2021}{...}
+{* *! version 0.6 29mar2026}{...}
 {vieweralsosee "tabstat" "help tabstat"}{...}
 {viewerjumpto "Syntax" "regife##syntax"}{...}
 {viewerjumpto "Description" "regife##description"}{...}
@@ -46,7 +46,7 @@ Optionally, {cmd:regife} saves the estimated factors, loadings, and residuals. S
 {synopt:{opt vce}{cmd:(}{help reghdfe##vcetype:vcetype}[, {it:opt}]{cmd:)}}{it:vcetype}}
 is {opt un:adjusted}/{opt ols} (default), {opt r:obust}, {opt bootstrap} or {opt cl:uster} {it:clustervars}. Monte Carlo evidence suggests that bootstrap performs better in finite samples{p_end}
 {synopt:{opt tol:erance(#)}} specifies the tolerance criterion for convergence; default is {cmd:tolerance(1e-9)}{p_end}
-{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(5000)}. 0 corresponds to an unlimited number of iterations{p_end}
+{synopt:{opt max:iterations(#)}} specifies the maximum number of iterations; default is {cmd:maxiterations(10000)}. 0 corresponds to an unlimited number of iterations{p_end}
 {synopt :{opt res:iduals(newvar)}} save residuals {p_end}
 {synopt :{opt bstart(matrix)}} start the iteration algorithm at a given value  for b{p_end}
 {synoptline}
