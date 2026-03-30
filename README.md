@@ -27,7 +27,7 @@ ssc install regife
 To install the latest version from GitHub:
 
 ```stata
-net install regife, from("https://raw.githubusercontent.com/matthieugomez/regife/master/")
+net install regife, from("https://raw.githubusercontent.com/matthieugomez/regife/main/")
 ```
 
 ## Syntax
