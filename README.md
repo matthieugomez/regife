@@ -17,36 +17,32 @@ The command is slow. A much faster implementation is available in [Julia](https:
 
 ## Installation
 
-`regife` is available on SSC. It requires [reghdfe](https://github.com/sergiocorreia/reghdfe).
+`regife` is available on SSC. It requires [reghdfe](https://github.com/sergiocorreia/reghdfe). Using `absorb()` with multiple variables additionally requires [hdfe](https://ideas.repec.org/c/boc/bocode/s457928.html).
 
 ```stata
 ssc install reghdfe
 ssc install regife
 ```
 
-To install the latest version from GitHub (Stata 13+):
+To install the latest version from GitHub:
 
 ```stata
 net install regife, from("https://raw.githubusercontent.com/matthieugomez/regife/master/")
 ```
 
-For Stata 12, download the zip file and install locally:
-
-```stata
-net install regife, from("path_to_folder")
-```
-
 ## Syntax
+
+### `regife`
 
 ```
 regife depvar [indepvars] [if] [in] [weight], ife(idvar timevar, d) [options]
 ```
 
-### Required option
+#### Required option
 
 - **`ife(idvar timevar, d)`** specifies the id variable, time variable, and the dimension `d` of the factor model.
 
-### Optional
+#### Optional
 
 - **`absorb(absvar [...])`** absorbs standard fixed effects (passed to `reghdfe`). Example: `absorb(state year)`.
 - **`vce(vcetype)`** specifies the variance-covariance estimator: `unadjusted` (default), `robust`, `bootstrap`, or `cluster clustvar`. Monte Carlo evidence suggests bootstrap performs better in finite samples.
@@ -56,6 +52,14 @@ regife depvar [indepvars] [if] [in] [weight], ife(idvar timevar, d) [options]
 - **`bstart(matrix)`** provides a starting value for the coefficient vector.
 
 Weights (`fweight`, `aweight`, `pweight`) are supported but must be constant within `idvar`.
+
+### `ife`
+
+`ife` extracts factors and loadings from a single variable (without regression). This is useful for 3-step estimation: extract factors from a variable, then use them as controls in a second regression.
+
+```
+ife varname [if] [in] [weight], factors(idvar timevar, d) [absorb(absvar) residuals(newvar)]
+```
 
 ## Examples
 
@@ -102,6 +106,14 @@ regife ln_w tenure, ife(id year, 1) vce(bootstrap)
 regife ln_w tenure, ife(id year, 1) vce(bootstrap, cluster(id))
 ```
 
+### Extract factors with `ife`
+
+```stata
+ife ln_w, factors(fei=id fey=year, 2) absorb(id) residuals(res)
+```
+
+This decomposes `ln_w` (after absorbing the `id` fixed effect) into loadings (`fei1`, `fei2`), factors (`fey1`, `fey2`), and residuals (`res`).
+
 ### Unbalanced panels
 
 The command handles unbalanced panels (i.e., missing observations for a given id-time pair) as described in the appendix of Bai (2009).
@@ -127,14 +139,27 @@ Standard errors are obtained by regressing `y` on `x` and covariates of the form
 No. In the presence of cross-sectional or time-series correlation beyond the factor structure, the estimator for beta is consistent but biased (see Theorem 3 in Bai 2009, which derives the correction term in special cases). This package does not implement any bias correction. You may want to check that your residuals are approximately i.i.d.
 
 
+## Changes
+
+### v0.6 (2026-03-29)
+Fix cluster bootstrap. In previous versions, `vce(bootstrap, cluster())` silently ignored the `absorb()` option and used the wrong panel id for resampling when variable names were abbreviated. Point estimates from `regife` without bootstrap were unaffected. Standard errors from `vce(bootstrap)` without `cluster()` were also unaffected.
+
+### v0.4 (2021-09-01)
+Remove error when N < T. Preserve tsset.
+
+### v0.3 (2017-04-12)
+Correct weight handling.
+
+### v0.2 (2015-07-09)
+Correct normalization for loadings.
+
+### v0.1 (2015-07-08)
+First release.
+
+
 ## References
 
-- Bai, Jushan. *Panel Data Models with Interactive Fixed Effects.* Econometrica, 2009.
-- Ilin, Alexander, and Tapani Raiko. *Practical Approaches to Principal Component Analysis in the Presence of Missing Values.* Journal of Machine Learning Research, 2010.
-- Koren, Yehuda. *Factorization Meets the Neighborhood: A Multifaceted Collaborative Filtering Model.* KDD, 2008.
-- Raiko, Tapani, Alexander Ilin, and Juha Karhunen. *Principal Component Analysis for Sparse High-Dimensional Data.* Neural Information Processing, 2008.
-- Srebro, Nathan, and Tommi Jaakkola. *Weighted Low-Rank Approximations.* ICML, 2003.
-- Nocedal, Jorge, and Stephen Wright. *Numerical Optimization.* Springer, 2006.
+Bai, Jushan. *Panel Data Models with Interactive Fixed Effects.* Econometrica, 2009.
 
 
 ## Citation
